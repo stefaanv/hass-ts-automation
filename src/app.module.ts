@@ -3,8 +3,9 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ConfigModule } from '@nestjs/config'
-import { AutomationServiceService } from './architecture/automation-service.service'
 import configuration from '@src/config'
+import { AutomationService } from './architecture/automation.service'
+import { DriverLoader } from './architecture/driver-loader.service'
 
 @Module({
   imports: [
@@ -14,6 +15,6 @@ import configuration from '@src/config'
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, AutomationServiceService],
+  providers: [AppService, AutomationService, DriverLoader],
 })
 export class AppModule {}
