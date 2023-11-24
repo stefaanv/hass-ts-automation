@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { ConfigService } from '@nestjs/config'
 
 export const DriverSchema = z.object({
   name: z.string(),
@@ -10,7 +11,7 @@ export const DriverSchema = z.object({
       /** driver-specific configuration */
       z.unknown(),
       /** Global configuration */
-      z.instanceof(EventEmitter2),
+      z.instanceof(ConfigService),
       /** For communication */
       z.instanceof(EventEmitter2),
     )
