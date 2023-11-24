@@ -3,7 +3,7 @@ import { Driver, DriverSchema } from './driver.model'
 import { tryit } from 'radash'
 import { EventEmitter2 } from 'eventemitter2'
 import { ConfigService } from '@nestjs/config'
-import { whiteBright } from 'ansi-colors'
+import { white } from 'ansi-colors'
 import { readdirSync } from 'fs'
 import { resolve } from 'path'
 
@@ -24,12 +24,14 @@ export class DriverLoader {
     this._log.log(`Loading drivers`)
     const driverFolder = this._config.get('driverFolder', '')
     const driverExtension = this._config.get('driverExtension', '.js')
-    const files = readdirSync(driverFolder).filter(f => f.endsWith(driverExtension))
+    const files = readdirSync(driverFolder, { recursive: false, withFileTypes: false })
+      .map(buffer => buffer.toString())
+      .filter(f => f.endsWith(driverExtension))
     for (const file of files) {
       const driverFullPath = resolve(driverFolder, file)
       const driverClass = (await import(driverFullPath)).default
       const driverInstance: Driver = new driverClass()
-      const [error, result] = tryit(DriverSchema.parse)(driverInstance)
+      const [error] = tryit(DriverSchema.parse)(driverInstance)
       if (error) {
         this._log.error(`Unable to load TestDriver - ${error.message}}`)
         this._log.debug!(error)
@@ -37,7 +39,7 @@ export class DriverLoader {
         this._log.log(`Driver ${driverInstance.name} v${driverInstance.version} loaded`)
         this._drivers.push(driverInstance)
         driverInstance.start({}, this._config, this._eventEmitter)
-        this._log.log(`Driver ${driverInstance.name} started`)
+        this._log.log(white(`Driver ${driverInstance.name} started`))
       }
     }
   }
