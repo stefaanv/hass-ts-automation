@@ -8,7 +8,6 @@ export class AppService {
 
   constructor(config: ConfigService) {
     this._log = new Logger(AppService.name)
-    this._log.log(whiteBright('test logging'))
   }
   getHello(): string {
     return 'Hello World!'
