@@ -7,6 +7,8 @@ import { red, white } from 'ansi-colors'
 import { readdirSync } from 'fs'
 import { resolve } from 'path'
 
+const tryImport = tryit(async (file: string) => import(file))
+
 @Injectable()
 export class DriverLoader {
   private readonly _drivers: IDriver[] = []
@@ -33,14 +35,14 @@ export class DriverLoader {
       const filenameRoot = filename.replace(stripRegex, '')
       const configFilename = filenameRoot + configExtension
       const driverFullPath = resolve(driverFolder, filename)
-      const configFullPath = resolve(driverFolder, configFilename)
-      const driverClass = (await import(driverFullPath)).default
-      const [error1] = tryit(DriverConstructorSchema.parse)(driverClass)
-      if (error1) {
-        this._log.error(`Driver ${filenameRoot} constructor is incorrect - ${error1.message}}`)
+      const [error0, dcImp] = await tryImport(driverFullPath)
+      const [error1] = tryit(DriverConstructorSchema.parse)(dcImp.default)
+      if (error0 || error1) {
+        const error = error0 ?? error1
+        this._log.error(`Driver ${filenameRoot} constructor is incorrect - ${error!.message}}`)
         return
       }
-      const driverInstance: IDriver = new driverClass({}, this._config)
+      const driverInstance: IDriver = new dcImp.default({}, this._config)
       const [error3] = tryit(DriverSchema.parse)(driverInstance)
       if (error3) {
         this._log.error(`Driver ${filenameRoot} class has incorrect form - ${error3.message}}`)
