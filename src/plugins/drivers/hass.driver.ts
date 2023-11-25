@@ -1,13 +1,12 @@
 import WebSocket from 'ws'
 import { EventInfo, IncomingMessage, OutgoingMessage } from './hass/hass-message.types'
-import { IDriver } from '@src/architecture/driver.model'
+import { Driver, IDriver } from '@src/architecture/driver.model'
 import { ConfigService } from '@nestjs/config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 const hassUrl = process.env.HASS_URL
 const access_token = process.env.ACCESS_TOKEN || ''
-const GOBAL_CONFIG_PREFIX = 'drivers.hass.'
 
-export default class TestDriver implements IDriver {
+export default class TestDriver extends Driver {
   public readonly name = 'Home Assistant'
   public readonly version = '0.0.1'
   private readonly authAttempts = 0
@@ -16,22 +15,19 @@ export default class TestDriver implements IDriver {
   private readonly started = false
   private readonly hassWsUrl: string
 
-  constructor(
-    private readonly _localConfig: any,
-    private readonly _globalConfig: ConfigService,
-  ) {
+  constructor(localConfig: any, globalConfig: ConfigService) {
+    super(localConfig, globalConfig)
     this.hassWsUrl = this.getConfig('hassWsUrl', '')
   }
 
-  getConfig<T>(key: string, dflt: T) {
-    const globalKey = GOBAL_CONFIG_PREFIX + key
-    return (this._localConfig[key] as T) ?? this._globalConfig.get<T>(globalKey) ?? dflt
+  async start(emitter: EventEmitter2) {
+    this._logger.warn(this.hassWsUrl)
+    return true
   }
-
-  start(emitter: EventEmitter2) {}
-  stop() {}
+  async stop() {}
 }
 
+/*
 const ws = new WebSocket('ws://192.168.0.3:8123/api/websocket')
 ws.on('error', console.error)
 
@@ -83,9 +79,6 @@ function printEvent(event: EventInfo) {
       /^sensor.power|^sensor.voltage|^sensor.current|^media_player|^sensor.inverter_pv|^sensor.slimmelezer/,
     )
   )
-    console.log(
-      `${chalk.yellowBright(event.data.entity_id)} => ` +
-        `${chalk.whiteBright(newState)}` +
-        ` ${JSON.stringify(eventData)}`,
-    )
+    console.log(`${event.data.entity_id} => ` + `${newState}` + ` ${JSON.stringify(eventData)}`)
 }
+*/

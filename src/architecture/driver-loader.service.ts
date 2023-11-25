@@ -35,16 +35,16 @@ export class DriverLoader {
       const driverFullPath = resolve(driverFolder, filename)
       const configFullPath = resolve(driverFolder, configFilename)
       const driverClass = (await import(driverFullPath)).default
-      const [error1, result1] = tryit(DriverConstructorSchema.parse)(driverClass)
+      const [error1] = tryit(DriverConstructorSchema.parse)(driverClass)
       if (error1) {
         this._log.error(`Driver ${filenameRoot} constructor is incorrect - ${error1.message}}`)
         return
       }
       const driverInstance: IDriver = new driverClass({}, this._config)
-      const [error2] = tryit(DriverSchema.parse)(driverInstance)
-      if (error2) {
-        this._log.error(`Driver ${filenameRoot} class has incorrect form - ${error2.message}}`)
-        this._log.debug!(error2)
+      const [error3] = tryit(DriverSchema.parse)(driverInstance)
+      if (error3) {
+        this._log.error(`Driver ${filenameRoot} class has incorrect form - ${error3.message}}`)
+        this._log.debug!(error3)
         return
       }
       this._log.log(`Driver ${driverInstance.name} v${driverInstance.version} loaded`)
