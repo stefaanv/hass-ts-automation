@@ -36,7 +36,7 @@ export interface IDriver {
 }
 
 export abstract class Driver implements IDriver {
-  private _logger: LoggerService
+  protected _logger: LoggerService
   constructor(
     private readonly localConfig: any,
     private readonly globalConfig: ConfigService,
@@ -45,11 +45,11 @@ export abstract class Driver implements IDriver {
   }
   name: string
   version: string
-  abstract start: (emitter: EventEmitter2) => Promise<boolean>
-  abstract stop: () => Promise<void>
+  abstract start(emitter: EventEmitter2): Promise<boolean>
+  abstract stop(): Promise<void>
 
   public debug: boolean = false
-  private logDebug(message: any, ...optionalParams: any[]) {
+  protected logDebug(message: any, ...optionalParams: any[]) {
     if (this.debug) this._logger.debug!(message, ...optionalParams)
   }
 }
