@@ -50,7 +50,7 @@ export abstract class Driver implements IDriver {
   abstract start(emitter: EventEmitter2): Promise<boolean>
   abstract stop(): Promise<void>
 
-  public debug: boolean = false
+  public debug: boolean = true
   protected logDebug(message: any, ...optionalParams: any[]) {
     if (this.debug) this._logger.debug!(message, ...optionalParams)
   }
