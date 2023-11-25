@@ -35,6 +35,7 @@ export class DriverLoader {
       const filenameRoot = filename.replace(stripRegex, '')
       const configFilename = filenameRoot + configExtension
       const driverFullPath = resolve(driverFolder, filename)
+      const configFullPath = resolve(driverFolder, configFilename)
       const [error0, dcImp] = await tryImport(driverFullPath)
       const [error1] = tryit(DriverConstructorSchema.parse)(dcImp.default)
       if (error0 || error1) {
