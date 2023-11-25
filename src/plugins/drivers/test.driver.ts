@@ -1,17 +1,20 @@
 import { ConfigService } from '@nestjs/config'
-import { Driver } from '@src/architecture/driver.model'
+import { IDriver } from '@src/architecture/driver.model'
 import EventEmitter2 from 'eventemitter2'
 
-export default class TestDriver implements Driver {
+export default class TestDriver implements IDriver {
   name = 'Test Driver'
   version = '0.0.1'
-  start(localConfig: unknown, globalConfig: ConfigService, emitter: EventEmitter2) {
+  constructor(localConfig: any, globalConfig: ConfigService) {}
+
+  async start(emitter: EventEmitter2) {
     emitter.onAny((event, value) => {
       console.log(`TestDriver : ${event} => ${JSON.stringify(value)}`)
     })
     setInterval(() => emitter.emit('testEvent', { test: 'data' }), 2000)
+    return true
   }
-  stop() {
+  async stop() {
     console.log()
   }
 }

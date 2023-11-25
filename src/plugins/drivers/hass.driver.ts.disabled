@@ -1,0 +1,91 @@
+import WebSocket from 'ws'
+import { EventInfo, IncomingMessage, OutgoingMessage } from './hass/hass-message.types'
+import { IDriver } from '@src/architecture/driver.model'
+import { ConfigService } from '@nestjs/config'
+import { EventEmitter2 } from '@nestjs/event-emitter'
+const hassUrl = process.env.HASS_URL
+const access_token = process.env.ACCESS_TOKEN || ''
+const GOBAL_CONFIG_PREFIX = 'drivers.hass.'
+
+export default class TestDriver implements IDriver {
+  public readonly name = 'Home Assistant'
+  public readonly version = '0.0.1'
+  private readonly authAttempts = 0
+  private readonly cmdIdCounter = 1
+  private readonly ws: WebSocket
+  private readonly started = false
+  private readonly hassWsUrl: string
+
+  constructor(
+    private readonly _localConfig: any,
+    private readonly _globalConfig: ConfigService,
+  ) {
+    this.hassWsUrl = this.getConfig('hassWsUrl', '')
+  }
+
+  getConfig<T>(key: string, dflt: T) {
+    const globalKey = GOBAL_CONFIG_PREFIX + key
+    return (this._localConfig[key] as T) ?? this._globalConfig.get<T>(globalKey) ?? dflt
+  }
+
+  start(emitter: EventEmitter2) {}
+  stop() {}
+}
+
+const ws = new WebSocket('ws://192.168.0.3:8123/api/websocket')
+ws.on('error', console.error)
+
+ws.on('open', function open() {
+  console.log('connection opened')
+})
+
+ws.on('message', function message(buf: Buffer) {
+  const data: IncomingMessage = JSON.parse(buf.toString())
+  switch (data.type) {
+    case 'auth_required':
+      send({ type: 'auth', access_token })
+      break
+    case 'auth_ok':
+      send({ id: cmdIdCounter++, type: 'subscribe_events', event_type: 'state_changed' })
+      break
+    case 'result':
+      if (!data.success) {
+        console.error(data.error)
+        return
+      }
+      console.log(data)
+      break
+    case 'event':
+      printEvent(data.event)
+      break
+    default:
+      console.log(data)
+      break
+  }
+})
+
+function send(msg: OutgoingMessage) {
+  ws.send(JSON.stringify(msg))
+}
+
+function printEvent(event: EventInfo) {
+  const eventData: any = event.data.new_state
+  const newState = eventData.state + (eventData.attributes.unit_of_measurement ?? '')
+  delete eventData.entity_id
+  delete eventData.context
+  delete eventData.last_changed
+  delete eventData.last_updated
+  delete eventData.state
+  delete eventData.attributes.unit_of_measurement
+  delete eventData.attributes.friendly_name
+  if (
+    !event.data.entity_id.match(
+      /^sensor.power|^sensor.voltage|^sensor.current|^media_player|^sensor.inverter_pv|^sensor.slimmelezer/,
+    )
+  )
+    console.log(
+      `${chalk.yellowBright(event.data.entity_id)} => ` +
+        `${chalk.whiteBright(newState)}` +
+        ` ${JSON.stringify(eventData)}`,
+    )
+}
