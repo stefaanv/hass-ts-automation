@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Logger } from '@nestjs/common'
 import { SensorStateUpdateEvent } from '@src/architecture/sensor.model'
-import { tryit } from 'radash'
 
 export default class TestDriver extends Driver {
   public readonly name = 'Home Assistant'
@@ -18,8 +17,6 @@ export default class TestDriver extends Driver {
   private readonly hassWsUrl: string
   private readonly accessToken: string
   private startPromise: (value: boolean) => void
-  private readonly blockFilter: RegExp
-  private _eventEmitter: EventEmitter2
 
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     super(filenameRoot, localConfig, globalConfig)

@@ -48,6 +48,7 @@ export abstract class Driver implements IDriver {
   protected _blockFilters: MultiRegex
   protected _selectFilters: MultiRegex
   protected _entityTranslation: Record<string, string>
+  protected _eventEmitter: EventEmitter2
 
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     this.id = localConfig.id ?? filenameRoot
