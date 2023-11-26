@@ -7,5 +7,6 @@ export default {
   blockFilters: [/phase_1$/i],
   throttleFilter: [/^sensor.energy/, /^sensor.voltage/, /^sensor.power/, /^sensor.current/, /^media_player/],
   //'^sensor.gw2000a||^sensor.current|^media_player|^sensor.inverter_pv|^sensor.slimmelezer',
-  bulkRename: { regex: /sensor.(?<entity>.*)$/, template: '{{entity}}' },
+  bulkRename: { regex: /(sensor|binary_sensor).(?<entity>.*)$/, template: '{{entity}}' },
+  entityTranslation: { power_consumed: 'actual-power-consumption' },
 }
