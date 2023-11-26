@@ -27,7 +27,7 @@ export const DriverConstructorSchema = z
   )
   .returns(z.string()) //DriverSchema)
 
-//TODO: toch abstracte klasse van maken en gedeelde functies in steken
+//TODO: minimum variatie filter maken (realtief & absoluut)
 // bvb aan-en af zetten van debug logging
 export interface IDriver {
   name: string
@@ -85,7 +85,7 @@ export abstract class DriverBase implements IDriver {
     const content = knownMsg
       ? `${knownMsg.numberState ?? knownMsg.state} ${knownMsg.unit}`
       : JSON.stringify(nativeMessage).slice(0, 100)
-    console.log(`${entity} -> ${content}`)
+    console.log(`${entity} -> ${content}`) //TODO vervangen door debugLog
     DriverBase.eventEmitter.emit('sensor.state', msg)
 
     // this._eventEmitter.emit(`${this.id}.${entity}`, payload)

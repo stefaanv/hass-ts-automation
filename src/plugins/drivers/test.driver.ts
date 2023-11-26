@@ -1,8 +1,7 @@
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { DriverBase, IDriver } from '@src/architecture/driver.base'
+import { DriverBase } from '@src/architecture/driver.base'
 import { SensorStateUpdate } from '@src/architecture/known-messages/sensor.model'
-import EventEmitter2 from 'eventemitter2'
 
 export default class TestDriver extends DriverBase {
   name = 'Test Driver'
@@ -25,7 +24,7 @@ export default class TestDriver extends DriverBase {
       unit: '',
     }
 
-    setInterval(() => DriverBase.eventEmitter.emit('sensor.state', payload), 5000)
+    // setInterval(() => this.handleIncomingMessage(payload), 10000)
     return true
   }
   async stop() {
@@ -33,9 +32,9 @@ export default class TestDriver extends DriverBase {
   }
 
   entityFrom(nativeMessage: any): string | undefined {
-    return 'test'
+    return nativeMessage.entity
   }
   transformKnownMessage(entity: string, nativeMessage: any) {
-    return undefined
+    return nativeMessage
   }
 }

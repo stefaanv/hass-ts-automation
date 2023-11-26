@@ -4,18 +4,21 @@ import { DriverBase } from '@src/architecture/driver.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
 import { SensorStateUpdate } from '@src/architecture/known-messages/sensor.model'
+import { MultiRegex } from '@src/utilities'
 
 export default class HassDriver extends DriverBase {
   public readonly name = 'Home Assistant'
   public readonly version = '0.0.1'
   public readonly id = 'hass'
-  private authAttempts = 0
   private cmdIdCounter = 1
   private ws: WebSocket
   private readonly started = false
   private readonly hassWsUrl: string
   private readonly accessToken: string
   private startPromise: (value: boolean) => void
+  private readonly throttleFilter: MultiRegex
+  private readonly throttleCounters: Record<string, number> = {}
+  private readonly throttleAmount = 10
 
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     super(filenameRoot, localConfig, globalConfig)
@@ -23,6 +26,7 @@ export default class HassDriver extends DriverBase {
     this.hassWsUrl = this.getConfig('hassWsUrl', '')
     this.accessToken = this.getConfig('accessToken', '')
     this.debug = true
+    this.throttleFilter = new MultiRegex(this.getConfig<string[]>('throttleFilter', []))
   }
 
   async start() {
@@ -62,10 +66,20 @@ export default class HassDriver extends DriverBase {
         this.startPromise(false)
         break
       default:
-        this.handleIncomingMessage(data)
+        if (entity && this.throttle(entity)) this.handleIncomingMessage(data)
         // this.processStateChangedEvents(entity!, data)
         break
     }
+  }
+
+  throttle(entity: string) {
+    const counter = this.throttleCounters[entity]
+    if (counter === undefined || counter === this.throttleAmount) {
+      this.throttleCounters[entity] = 0
+      return true
+    }
+    this.throttleCounters[entity]++
+    return false
   }
 
   transformKnownMessage(entity: string, nativeMessage: any) {
