@@ -56,7 +56,7 @@ export abstract class Driver implements IDriver {
     this._logger = new Logger(`${this.id} driver`)
     this._logger.log(`${this.name} (${this.id})${this.version ? ' v' + this.version : ''} loaded`)
     this._blockFilters = new MultiRegex(this.getConfig('blockFilters', []))
-    this._selectFilters = new MultiRegex(this.getConfig('selectFilters', []))
+    this._selectFilters = new MultiRegex(this.getConfig('selectFilters', []), true)
   }
   public readonly name: string
   public readonly version: string

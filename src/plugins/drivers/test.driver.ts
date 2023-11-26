@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Driver, IDriver } from '@src/architecture/driver.model'
+import { Driver, IDriver } from '@src/architecture/driver.base'
 import { SensorStateUpdateEvent } from '@src/architecture/sensor.model'
 import EventEmitter2 from 'eventemitter2'
 

@@ -1,6 +1,6 @@
 import * as WebSocket from 'ws'
 import { EventInfo, IncomingMessage, OutgoingMessage } from './hass/hass-message.types'
-import { Driver } from '@src/architecture/driver.model'
+import { Driver } from '@src/architecture/driver.base'
 import { ConfigService } from '@nestjs/config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Logger } from '@nestjs/common'
@@ -52,6 +52,7 @@ export default class TestDriver extends Driver {
   }
 
   private processIncomingMessage(data: IncomingMessage) {
+    const entity = this.entityFrom(data)
     switch (data.type) {
       case 'auth_required':
         this.logDebug(`Connected to HASS ${data.ha_version ?? ''}, attempting logon`)
@@ -67,7 +68,7 @@ export default class TestDriver extends Driver {
         this.startPromise(false)
         break
       case 'event':
-        this.processStateChangedEvents(data.event, data.id)
+        this.processStateChangedEvents(entity!, data.event, data.id)
         break
       case 'result':
         console.log(`result ${data.id} - ${data.success ? 'success' : 'FAILED'}`)
@@ -79,13 +80,12 @@ export default class TestDriver extends Driver {
     }
   }
 
-  private processStateChangedEvents(data: EventInfo, id: number) {
+  private processStateChangedEvents(entity: string, data: EventInfo, id: number) {
     const nativeEntity = data.data?.entity_id
     const newState = data.data?.new_state.state
     const numberState = isNaN(parseFloat(newState)) ? undefined : parseFloat(newState)
     const unit = data.data.new_state.attributes.unit_of_measurement ?? ''
-    if (nativeEntity.match(this.blockFilter)) return
-    const entity = nativeEntity.replace(/^sensor\./, '')
+    if (!this.filter(entity)) return false
     const payload: SensorStateUpdateEvent = {
       originatingDriver: this.id,
       entity,

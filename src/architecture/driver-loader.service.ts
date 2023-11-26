@@ -1,5 +1,5 @@
 import { Injectable, Logger, LoggerService } from '@nestjs/common'
-import { IDriver, DriverConstructorSchema, DriverSchema } from './driver.model'
+import { IDriver, DriverConstructorSchema, DriverSchema } from './driver.base'
 import { tryit } from 'radash'
 import { EventEmitter2 } from 'eventemitter2'
 import { ConfigService } from '@nestjs/config'
