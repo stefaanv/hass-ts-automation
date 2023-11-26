@@ -26,7 +26,7 @@ export default class HassDriver extends DriverBase {
     this.hassWsUrl = this.getConfig('hassWsUrl', '')
     this.accessToken = this.getConfig('accessToken', '')
     this.debug = true
-    this.throttleFilter = new MultiRegex(this.getConfig<string[]>('throttleFilter', []))
+    this.throttleFilter = new MultiRegex(this.getConfig<RegExp[]>('throttleFilter', []))
   }
 
   async start() {
@@ -73,6 +73,7 @@ export default class HassDriver extends DriverBase {
   }
 
   throttle(entity: string) {
+    if (!this.throttleFilter.test(entity)) return true
     const counter = this.throttleCounters[entity]
     if (counter === undefined || counter === this.throttleAmount) {
       this.throttleCounters[entity] = 0

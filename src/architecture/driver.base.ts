@@ -3,7 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ConfigService } from '@nestjs/config'
 import { Logger, LoggerService } from '@nestjs/common'
 import { construct, crush, get } from 'radash'
-import { MultiRegex } from '@src/utilities'
+import { MultiRegex, RegexTemplateReplace } from '@src/utilities'
 import { KnownMessage } from './known-messages/sensor.model'
 
 const GOBAL_CONFIG_PREFIX = 'drivers'
@@ -44,6 +44,7 @@ export abstract class DriverBase implements IDriver {
   protected _selectFilters: MultiRegex
   protected _entityTranslation: Record<string, string>
   static eventEmitter: EventEmitter2
+  private readonly bulkRename: RegexTemplateReplace
 
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     this.id = localConfig.id ?? filenameRoot
@@ -54,6 +55,7 @@ export abstract class DriverBase implements IDriver {
     this._blockFilters = new MultiRegex(this.getConfig('blockFilters', []))
     this._selectFilters = new MultiRegex(this.getConfig('selectFilters', []), true)
     this._entityTranslation = this.getConfig('entityTranslation', {})
+    this.bulkRename = new RegexTemplateReplace(this.getConfig('bulkRename'))
   }
   public readonly name: string
   public readonly version: string
@@ -71,7 +73,8 @@ export abstract class DriverBase implements IDriver {
 
   translateEntityName(entity: string | undefined): string | undefined {
     if (entity === undefined) return undefined
-    return this._entityTranslation[entity] ?? entity
+    const bulk = this.bulkRename.transform(entity)
+    return this._entityTranslation[bulk] ?? bulk
   }
 
   handleIncomingMessage(nativeMessage: any) {
