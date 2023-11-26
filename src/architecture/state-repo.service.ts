@@ -13,8 +13,8 @@ export class StateRepoService {
     this._log = new Logger(StateRepoService.name)
   }
 
-  // @OnEvent('sensor.state')
-  // receiveEvent(payload: SensorStateUpdateEvent) {
-  //   console.log(`${payload.entity} -> ${payload.numberState ?? payload.state} ${payload.unit}`)
-  // }
+  @OnEvent('driver.hass')
+  receiveEvent(payload: any) {
+    // console.log(`${payload.entity} -> ${payload.numberState ?? payload.state} ${payload.unit}`)
+  }
 }

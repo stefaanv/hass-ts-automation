@@ -3,8 +3,9 @@ import { EventInfo, IncomingMessage, OutgoingMessage } from './hass/hass-message
 import { DriverBase } from '@src/architecture/driver.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
-import { SensorStateUpdate } from '@src/architecture/known-messages/sensor.model'
+import { SensorState, SensorStateUpdate } from '@src/architecture/known-messages/sensor.model'
 import { MultiRegex } from '@src/utilities'
+import { Message } from '@src/architecture/message.model'
 
 export default class HassDriver extends DriverBase {
   public readonly name = 'Home Assistant'
@@ -19,6 +20,10 @@ export default class HassDriver extends DriverBase {
   private readonly throttleFilter: MultiRegex
   private readonly throttleCounters: Record<string, number> = {}
   private readonly throttleAmount = 10
+
+  get origin() {
+    return `driver.${this.id}`
+  }
 
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     super(filenameRoot, localConfig, globalConfig)
@@ -66,7 +71,10 @@ export default class HassDriver extends DriverBase {
         this.startPromise(false)
         break
       default:
-        if (entity && this.throttle(entity)) this.handleIncomingMessage(data)
+        if (entity && this.throttle(entity)) {
+          const transformed = this.transformKnownMessage(entity, data)
+          this.handleIncomingMessage(transformed)
+        }
         // this.processStateChangedEvents(entity!, data)
         break
     }
@@ -83,25 +91,17 @@ export default class HassDriver extends DriverBase {
     return false
   }
 
-  transformKnownMessage(entity: string, nativeMessage: any) {
+  transformKnownMessage(entity: string, nativeMessage: any): Message {
+    let content = nativeMessage
     if (nativeMessage.type === 'event') {
       const event: EventInfo = nativeMessage.event
       const nativeEntity = event.data?.entity_id
       const newState = event.data?.new_state.state
       const numberState = isNaN(parseFloat(newState)) ? undefined : parseFloat(newState)
       const unit = event.data.new_state.attributes.unit_of_measurement ?? ''
-      const payload: SensorStateUpdate = {
-        originatingDriver: this.id,
-        entity,
-        nativeEntity,
-        history: [],
-        time: new Date(),
-        state: newState,
-        numberState,
-        unit,
-      }
-      return payload
+      content = new SensorState(newState, unit, numberState)
     }
+    return new Message(this.origin, entity, content)
   }
 
   private send(msg: OutgoingMessage) {

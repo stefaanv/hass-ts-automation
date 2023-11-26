@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { Logger, LoggerService } from '@nestjs/common'
 import { construct, crush, get } from 'radash'
 import { MultiRegex, RegexTemplateReplace } from '@src/utilities'
-import { KnownMessage } from './known-messages/sensor.model'
+import { Message, UnknownContent, KnownContent } from './message.model'
 
 const GOBAL_CONFIG_PREFIX = 'drivers'
 
@@ -63,8 +63,8 @@ export abstract class DriverBase implements IDriver {
 
   abstract start(): Promise<boolean>
   abstract stop(): Promise<void>
-  abstract entityFrom(nativeMessage: any): string | undefined
-  abstract transformKnownMessage(entity: string, nativeMessage: any): KnownMessage
+  // abstract entityFrom(nativeMessage: UnknwnContent): string | undefined
+  // abstract transformKnownMessage(message: Message): [Message, boolean]
 
   filter(entity: string): boolean {
     if (this._blockFilters.test(entity)) return false
@@ -77,19 +77,14 @@ export abstract class DriverBase implements IDriver {
     return this._entityTranslation[bulk] ?? bulk
   }
 
-  handleIncomingMessage(nativeMessage: any) {
-    const entity = this.translateEntityName(this.entityFrom(nativeMessage))
-    if (!entity || this._blockFilters.test(entity) || !this._selectFilters.test(entity)) {
-      // if (entity) this.logDebug(`message from ${entity} filtered away`)
-      return
-    }
-    const knownMsg = this.transformKnownMessage(entity, nativeMessage)
-    const msg = knownMsg ?? nativeMessage
-    const content = knownMsg
-      ? `${knownMsg.numberState ?? knownMsg.state} ${knownMsg.unit}`
-      : JSON.stringify(nativeMessage).slice(0, 100)
-    console.log(`${entity} -> ${content}`) //TODO vervangen door debugLog
-    DriverBase.eventEmitter.emit('sensor.state', msg)
+  handleIncomingMessage(message: Message) {
+    const trEntity = this.translateEntityName(message.entity)
+    if (!trEntity || this._blockFilters.test(trEntity) || !this._selectFilters.test(trEntity)) return
+
+    message.entity = trEntity
+    // const trMessage = this.transformKnownMessage(message)
+    console.log(message.toString()) //TODO vervangen door debugLog
+    DriverBase.eventEmitter.emit(`driver.${this.id}`, message)
 
     // this._eventEmitter.emit(`${this.id}.${entity}`, payload)
   }
