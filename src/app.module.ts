@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config'
 import configuration from '@src/config'
 import { AutomationService } from './architecture/automation.service'
 import { DriverLoader } from './architecture/driver-loader.service'
+import { StateRepoService } from './architecture/state-repo.service'
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { DriverLoader } from './architecture/driver-loader.service'
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, AutomationService, DriverLoader],
+  providers: [AppService, AutomationService, DriverLoader, StateRepoService],
 })
 export class AppModule {}

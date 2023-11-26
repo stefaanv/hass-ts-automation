@@ -25,25 +25,38 @@ export class DriverLoader {
   async load() {
     this._log.log(`Loading drivers`)
     const driverFolder = this._config.get('driverFolder', '')
-    const driverExtension = this._config.get('driverExtension', '.js')
+    const driverExtension = this._config.get('driverExtension', '.driver.js')
     const configExtension = this._config.get('configExtension', '.config.js')
-    const files = readdirSync(driverFolder, { recursive: false, withFileTypes: false })
-      .map(buffer => buffer.toString())
-      .filter(f => f.endsWith(driverExtension) && !f.endsWith(configExtension))
+    const allFiles = readdirSync(driverFolder, { recursive: false, withFileTypes: false }).map(buffer =>
+      buffer.toString(),
+    )
+    const driverFiles = allFiles.filter(f => f.endsWith(driverExtension))
+    const configFiles = allFiles.filter(f => f.endsWith(configExtension))
+
     const stripRegex = new RegExp(`\\${driverExtension}$`)
-    for (const filename of files) {
+    for (const filename of driverFiles) {
       const filenameRoot = filename.replace(stripRegex, '')
       const configFilename = filenameRoot + configExtension
+      let localConfig = {}
+      if (configFiles.includes(configFilename)) {
+        const configFullPath = resolve(driverFolder, configFilename)
+        const [error0, config] = await tryImport(configFullPath)
+        if (error0) {
+          this._log.warn(`Unable to load local config file ${configFilename} - ${error0.message}}`)
+        } else {
+          localConfig = config.default
+        }
+      }
       const driverFullPath = resolve(driverFolder, filename)
-      const configFullPath = resolve(driverFolder, configFilename)
-      const [error0, dcImp] = await tryImport(driverFullPath)
-      const [error1] = tryit(DriverConstructorSchema.parse)(dcImp.default)
-      if (error0 || error1) {
-        const error = error0 ?? error1
+      const [error1, dcImp] = await tryImport(driverFullPath)
+      const driverClass = dcImp.default
+      const [error2] = tryit(DriverConstructorSchema.parse)(driverClass)
+      if (error1 || error2) {
+        const error = error1 ?? error2
         this._log.error(`Driver ${filenameRoot} constructor is incorrect - ${error!.message}}`)
         return
       }
-      const driverInstance: IDriver = new dcImp.default({}, this._config)
+      const driverInstance: IDriver = new driverClass(filenameRoot, localConfig, this._config)
       const [error3] = tryit(DriverSchema.parse)(driverInstance)
       if (error3) {
         this._log.error(`Driver ${filenameRoot} class has incorrect form - ${error3.message}}`)

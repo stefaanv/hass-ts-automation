@@ -8,7 +8,12 @@ interface AuthApprovalMsg {
   ha_version: string
 }
 
-interface CommandResultMsg {
+interface AuthFailedMsg {
+  type: 'auth_invalid'
+  message: string
+}
+
+export interface CommandResultMsg {
   type: 'result'
   id: number
   success: boolean
@@ -26,15 +31,37 @@ export interface EventInfo {
   event_type: 'state_changed'
   data: {
     entity_id: string
-    old_state: any
-    new_state: any
+    old_state: State
+    new_state: State
   }
   origin: string
   time_fired: string
   context: CommandContext
 }
 
-interface StateChangeEvent {
+export interface State {
+  entity_id: string
+  state: string
+  attributes: StateChangeAttributes
+  last_changed: string
+  last_updated: string
+  context: StateChangeContext
+}
+
+export interface StateChangeAttributes {
+  state_class: string
+  unit_of_measurement?: string
+  device_class: string
+  friendly_name: string
+}
+
+export interface StateChangeContext {
+  id: string
+  parent_id: string | null
+  user_id: string | null
+}
+
+export interface StateChangeEvent {
   type: 'event'
   event: EventInfo
   id: number
@@ -51,5 +78,10 @@ interface SubscribeMsg {
   event_type: 'state_changed'
 }
 
-export type IncomingMessage = AuthRequestMsg | AuthApprovalMsg | CommandResultMsg | StateChangeEvent
+export type IncomingMessage =
+  | AuthRequestMsg
+  | AuthApprovalMsg
+  | AuthFailedMsg
+  | CommandResultMsg
+  | StateChangeEvent
 export type OutgoingMessage = AuthRequest | SubscribeMsg
