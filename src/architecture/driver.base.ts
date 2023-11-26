@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { Logger, LoggerService } from '@nestjs/common'
 import { construct, crush, get } from 'radash'
 import { MultiRegex, RegexTemplateReplace } from '@src/utilities'
-import { Message, UnknownContent, KnownContent } from './message.model'
+import { Message } from './message.model'
 
 const GOBAL_CONFIG_PREFIX = 'drivers'
 
@@ -63,8 +63,6 @@ export abstract class DriverBase implements IDriver {
 
   abstract start(): Promise<boolean>
   abstract stop(): Promise<void>
-  // abstract entityFrom(nativeMessage: UnknwnContent): string | undefined
-  // abstract transformKnownMessage(message: Message): [Message, boolean]
 
   filter(entity: string): boolean {
     if (this._blockFilters.test(entity)) return false
@@ -78,15 +76,14 @@ export abstract class DriverBase implements IDriver {
   }
 
   handleIncomingMessage(message: Message) {
+    // translate the entity name
     const trEntity = this.translateEntityName(message.entity)
     if (!trEntity || this._blockFilters.test(trEntity) || !this._selectFilters.test(trEntity)) return
-
     message.entity = trEntity
-    // const trMessage = this.transformKnownMessage(message)
+
+    // debug log and distribute
     console.log(message.toString()) //TODO vervangen door debugLog
     DriverBase.eventEmitter.emit(`driver.${this.id}`, message)
-
-    // this._eventEmitter.emit(`${this.id}.${entity}`, payload)
   }
 
   public debug: boolean = false
