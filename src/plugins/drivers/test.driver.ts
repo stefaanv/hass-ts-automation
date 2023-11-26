@@ -1,10 +1,10 @@
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Driver, IDriver } from '@src/architecture/driver.base'
-import { SensorStateUpdateEvent } from '@src/architecture/sensor.model'
+import { DriverBase, IDriver } from '@src/architecture/driver.base'
+import { SensorStateUpdate } from '@src/architecture/known-messages/sensor.model'
 import EventEmitter2 from 'eventemitter2'
 
-export default class TestDriver extends Driver {
+export default class TestDriver extends DriverBase {
   name = 'Test Driver'
   version = '0.0.1'
   id = 'test'
@@ -13,22 +13,19 @@ export default class TestDriver extends Driver {
     this._logger = new Logger(this.name)
   }
 
-  async start(emitter: EventEmitter2) {
-    emitter.onAny((event, value) => {
-      this.logDebug(`TestDriver : ${event} => ${JSON.stringify(value)}`)
-    })
-    const payload: SensorStateUpdateEvent = {
+  async start() {
+    const payload: SensorStateUpdate = {
       originatingDriver: this.id,
       entity: 'test',
       nativeEntity: 'test',
       history: [],
-      lastStateChange: new Date(),
+      time: new Date(),
       state: 'test',
       numberState: undefined,
       unit: '',
     }
 
-    setInterval(() => emitter.emit('sensor.state', payload), 5000)
+    setInterval(() => DriverBase.eventEmitter.emit('sensor.state', payload), 5000)
     return true
   }
   async stop() {
@@ -37,5 +34,8 @@ export default class TestDriver extends Driver {
 
   entityFrom(nativeMessage: any): string | undefined {
     return 'test'
+  }
+  transformKnownMessage(entity: string, nativeMessage: any) {
+    return undefined
   }
 }

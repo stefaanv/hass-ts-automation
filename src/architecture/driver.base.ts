@@ -4,19 +4,14 @@ import { ConfigService } from '@nestjs/config'
 import { Logger, LoggerService } from '@nestjs/common'
 import { construct, crush, get } from 'radash'
 import { MultiRegex } from '@src/utilities'
+import { KnownMessage } from './known-messages/sensor.model'
 
 const GOBAL_CONFIG_PREFIX = 'drivers'
 
 export const DriverSchema = z.object({
   name: z.string(),
   version: z.string(),
-  start: z
-    .function()
-    .args(
-      /** For communication */
-      z.instanceof(EventEmitter2),
-    )
-    .returns(z.void()),
+  start: z.function().args().returns(z.promise(z.boolean())),
   stop: z.function().args().returns(z.void()),
 })
 
@@ -38,17 +33,17 @@ export interface IDriver {
   name: string
   id: string
   version: string
-  start: (emitter: EventEmitter2) => Promise<boolean>
+  start: () => Promise<boolean>
   stop: () => Promise<void>
 }
 
-export abstract class Driver implements IDriver {
+export abstract class DriverBase implements IDriver {
   protected _logger: LoggerService
   protected _config: any
   protected _blockFilters: MultiRegex
   protected _selectFilters: MultiRegex
   protected _entityTranslation: Record<string, string>
-  protected _eventEmitter: EventEmitter2
+  static eventEmitter: EventEmitter2
 
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     this.id = localConfig.id ?? filenameRoot
@@ -58,26 +53,41 @@ export abstract class Driver implements IDriver {
     this._logger.log(`${this.name} (${this.id})${this.version ? ' v' + this.version : ''} loaded`)
     this._blockFilters = new MultiRegex(this.getConfig('blockFilters', []))
     this._selectFilters = new MultiRegex(this.getConfig('selectFilters', []), true)
+    this._entityTranslation = this.getConfig('entityTranslation', {})
   }
   public readonly name: string
   public readonly version: string
   public readonly id: string
 
-  abstract start(emitter: EventEmitter2): Promise<boolean>
+  abstract start(): Promise<boolean>
   abstract stop(): Promise<void>
   abstract entityFrom(nativeMessage: any): string | undefined
+  abstract transformKnownMessage(entity: string, nativeMessage: any): KnownMessage
 
   filter(entity: string): boolean {
     if (this._blockFilters.test(entity)) return false
     return this._selectFilters.test(entity)
   }
 
-  handleIncomingFromDriver(nativeMessage: any) {
-    const entity = this.entityFrom(nativeMessage)
+  translateEntityName(entity: string | undefined): string | undefined {
+    if (entity === undefined) return undefined
+    return this._entityTranslation[entity] ?? entity
+  }
+
+  handleIncomingMessage(nativeMessage: any) {
+    const entity = this.translateEntityName(this.entityFrom(nativeMessage))
     if (!entity || this._blockFilters.test(entity) || !this._selectFilters.test(entity)) {
-      if (entity) this.logDebug(`message from ${entity} filtered away`)
+      // if (entity) this.logDebug(`message from ${entity} filtered away`)
       return
     }
+    const knownMsg = this.transformKnownMessage(entity, nativeMessage)
+    const msg = knownMsg ?? nativeMessage
+    const content = knownMsg
+      ? `${knownMsg.numberState ?? knownMsg.state} ${knownMsg.unit}`
+      : JSON.stringify(nativeMessage).slice(0, 100)
+    console.log(`${entity} -> ${content}`)
+    DriverBase.eventEmitter.emit('sensor.state', msg)
+
     // this._eventEmitter.emit(`${this.id}.${entity}`, payload)
   }
 

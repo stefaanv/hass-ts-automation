@@ -1,12 +1,11 @@
 import * as WebSocket from 'ws'
 import { EventInfo, IncomingMessage, OutgoingMessage } from './hass/hass-message.types'
-import { Driver } from '@src/architecture/driver.base'
+import { DriverBase } from '@src/architecture/driver.base'
 import { ConfigService } from '@nestjs/config'
-import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Logger } from '@nestjs/common'
-import { SensorStateUpdateEvent } from '@src/architecture/sensor.model'
+import { SensorStateUpdate } from '@src/architecture/known-messages/sensor.model'
 
-export default class TestDriver extends Driver {
+export default class HassDriver extends DriverBase {
   public readonly name = 'Home Assistant'
   public readonly version = '0.0.1'
   public readonly id = 'hass'
@@ -26,8 +25,7 @@ export default class TestDriver extends Driver {
     this.debug = true
   }
 
-  async start(emitter: EventEmitter2) {
-    this._eventEmitter = emitter
+  async start() {
     this.logDebug(`Connecting to websocket ${this.hassWsUrl}`)
     const promise = new Promise<boolean>(resolve => (this.startPromise = resolve))
     this.ws = new WebSocket(this.hassWsUrl)
@@ -42,10 +40,9 @@ export default class TestDriver extends Driver {
   entityFrom(nativeMessage: IncomingMessage): string | undefined {
     if (nativeMessage.type.startsWith('auth')) return undefined
     if (nativeMessage.type === 'event') return nativeMessage.event.data.entity_id
-    if (nativeMessage.type === 'result') {
-      console.error(`Add to entityFrom(): ${JSON.stringify(nativeMessage.result)}`)
-      return undefined
-    }
+    if (nativeMessage.type === 'result' && nativeMessage.result === null) return undefined
+    console.error(`Add to entityFrom(): ${JSON.stringify(nativeMessage)}`)
+    return undefined
   }
 
   private processIncomingMessage(data: IncomingMessage) {
@@ -64,37 +61,32 @@ export default class TestDriver extends Driver {
         this._logger.error(`Logon Failed - ${data.message}`)
         this.startPromise(false)
         break
-      case 'event':
-        this.processStateChangedEvents(entity!, data.event, data.id)
-        break
-      case 'result':
-        console.log(`result ${data.id} - ${data.success ? 'success' : 'FAILED'}`)
-        break
       default:
-        console.error('Unknown message type')
-        console.log(data)
+        this.handleIncomingMessage(data)
+        // this.processStateChangedEvents(entity!, data)
         break
     }
   }
 
-  private processStateChangedEvents(entity: string, data: EventInfo, id: number) {
-    const nativeEntity = data.data?.entity_id
-    const newState = data.data?.new_state.state
-    const numberState = isNaN(parseFloat(newState)) ? undefined : parseFloat(newState)
-    const unit = data.data.new_state.attributes.unit_of_measurement ?? ''
-    if (!this.filter(entity)) return false
-    const payload: SensorStateUpdateEvent = {
-      originatingDriver: this.id,
-      entity,
-      nativeEntity,
-      history: [],
-      lastStateChange: new Date(),
-      state: newState,
-      numberState,
-      unit,
+  transformKnownMessage(entity: string, nativeMessage: any) {
+    if (nativeMessage.type === 'event') {
+      const event: EventInfo = nativeMessage.event
+      const nativeEntity = event.data?.entity_id
+      const newState = event.data?.new_state.state
+      const numberState = isNaN(parseFloat(newState)) ? undefined : parseFloat(newState)
+      const unit = event.data.new_state.attributes.unit_of_measurement ?? ''
+      const payload: SensorStateUpdate = {
+        originatingDriver: this.id,
+        entity,
+        nativeEntity,
+        history: [],
+        time: new Date(),
+        state: newState,
+        numberState,
+        unit,
+      }
+      return payload
     }
-    this._eventEmitter.emit('sensor.state', payload)
-    // console.log(`${entityId} -> ${newState} ${unit}`)
   }
 
   private send(msg: OutgoingMessage) {

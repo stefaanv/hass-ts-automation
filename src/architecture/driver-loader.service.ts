@@ -1,5 +1,5 @@
 import { Injectable, Logger, LoggerService } from '@nestjs/common'
-import { IDriver, DriverConstructorSchema, DriverSchema } from './driver.base'
+import { IDriver, DriverConstructorSchema, DriverSchema, DriverBase } from './driver.base'
 import { tryit } from 'radash'
 import { EventEmitter2 } from 'eventemitter2'
 import { ConfigService } from '@nestjs/config'
@@ -19,10 +19,11 @@ export class DriverLoader {
     private readonly _eventEmitter: EventEmitter2,
   ) {
     this._log = new Logger(DriverLoader.name)
-    setTimeout(() => this.load(), 1000)
+    DriverBase.eventEmitter = _eventEmitter
+    setTimeout(() => this.loadDrivers(), 1000)
   }
 
-  async load() {
+  async loadDrivers() {
     this._log.log(`Loading drivers`)
     const driverFolder = this._config.get('driverFolder', '')
     const driverExtension = this._config.get('driverExtension', '.driver.js')
@@ -64,7 +65,7 @@ export class DriverLoader {
         return
       }
       this._log.log(`Driver ${driverInstance.name} v${driverInstance.version} loaded`)
-      const started = await driverInstance.start(this._eventEmitter)
+      const started = await driverInstance.start()
       if (started) {
         this._drivers.push(driverInstance)
         this._log.log(white(`Driver ${driverInstance.name} started`))

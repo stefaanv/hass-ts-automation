@@ -1,7 +1,7 @@
 import { Injectable, Logger, LoggerService } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
-import { SensorStateUpdateEvent } from './sensor.model'
+import { SensorStateUpdate } from './known-messages/sensor.model'
 
 @Injectable()
 export class StateRepoService {
@@ -13,8 +13,8 @@ export class StateRepoService {
     this._log = new Logger(StateRepoService.name)
   }
 
-  @OnEvent('sensor.state')
-  receiveEvent(payload: SensorStateUpdateEvent) {
-    console.log(`${payload.entity} -> ${payload.numberState ?? payload.state} ${payload.unit}`)
-  }
+  // @OnEvent('sensor.state')
+  // receiveEvent(payload: SensorStateUpdateEvent) {
+  //   console.log(`${payload.entity} -> ${payload.numberState ?? payload.state} ${payload.unit}`)
+  // }
 }
