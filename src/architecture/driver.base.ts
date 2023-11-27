@@ -25,7 +25,7 @@ export const DriverConstructorSchema = z
     /** Global configuration */
     z.instanceof(ConfigService),
   )
-  .returns(z.string()) //DriverSchema)
+  .returns(DriverSchema)
 
 //TODO: minimum variatie filter maken (realtief & absoluut)
 // bvb aan-en af zetten van debug logging
