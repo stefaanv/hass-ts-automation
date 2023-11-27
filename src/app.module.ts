@@ -10,7 +10,7 @@ import { StateRepoService } from './architecture/state-repo.service'
 
 @Module({
   imports: [
-    EventEmitterModule.forRoot(),
+    EventEmitterModule.forRoot({ wildcard: true }),
     ConfigModule.forRoot({
       load: [configuration],
     }),

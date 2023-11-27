@@ -3,9 +3,9 @@ import { EventInfo, IncomingMessage, OutgoingMessage } from './hass/hass-message
 import { DriverBase } from '@src/architecture/driver.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
-import { StateUpdate } from '@src/architecture/known-messages/state-update.model'
 import { MultiRegex } from '@src/utilities'
 import { Message } from '@src/architecture/message.model'
+import { ValueStateUpdate } from '@src/architecture/known-messages/value-state-update.model'
 
 export default class HassDriver extends DriverBase {
   public readonly name = 'Home Assistant'
@@ -94,11 +94,10 @@ export default class HassDriver extends DriverBase {
     let content = nativeMessage
     if (nativeMessage.type === 'event') {
       const event: EventInfo = nativeMessage.event
-      const nativeEntity = event.data?.entity_id
       const newState = event.data?.new_state.state
       const numberState = isNaN(parseFloat(newState)) ? undefined : parseFloat(newState)
       const unit = event.data.new_state.attributes.unit_of_measurement ?? ''
-      content = new StateUpdate(newState, unit, numberState)
+      content = new ValueStateUpdate(newState, unit, numberState)
     }
     return new Message(this.origin, entity, content)
   }

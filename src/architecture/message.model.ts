@@ -1,4 +1,11 @@
-export class Message<T = UnknownContent> {
+import { green, whiteBright, yellow } from 'ansi-colors'
+
+export interface IMessageContent {
+  type: string
+  timestamp: Date
+}
+
+export class Message<T extends IMessageContent = UnknownContent> {
   constructor(
     public origin: string,
     public entity: string,
@@ -7,15 +14,24 @@ export class Message<T = UnknownContent> {
   toString() {
     const strContent =
       this.content instanceof KnownContent
-        ? this.content.toString()
+        ? whiteBright(this.content.toString())
         : JSON.stringify(this.content).slice(0, 100)
-    return `${this.entity} (${this.origin}) = ${strContent}`
+    return green(
+      `${yellow(this.entity)} (${this.origin} / ${this.content.type}) = ${whiteBright(
+        strContent,
+      )}   (@ ${this.content.timestamp.toLocaleTimeString()})`,
+    )
   }
 }
 
-export type UnknownContent = any
+export type UnknownContent = any & IMessageContent
 
-export abstract class KnownContent {
-  constructor(public time: Date = new Date()) {}
+export abstract class KnownContent implements IMessageContent {
+  type = 'KnownContent'
+  constructor(public timestamp = new Date()) {}
+  timeToString() {
+    return `@ ${this.timestamp.toLocaleTimeString()}`
+  }
+
   abstract toString(): string
 }
