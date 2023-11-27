@@ -1,11 +1,10 @@
 import { KnownContent } from '../message.model'
 
-export class State extends KnownContent {
+export class StateUpdate extends KnownContent {
   constructor(
     public state: string,
     public unit: string,
     public numberState?: number,
-    public time: Date = new Date(),
   ) {
     super()
   }

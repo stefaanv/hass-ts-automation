@@ -16,5 +16,6 @@ export class Message<T = UnknownContent> {
 export type UnknownContent = any
 
 export abstract class KnownContent {
+  constructor(public time: Date = new Date()) {}
   abstract toString(): string
 }
