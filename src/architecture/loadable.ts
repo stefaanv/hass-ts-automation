@@ -32,10 +32,14 @@ export interface ILoadable {
 
 export abstract class Loadable implements ILoadable {
   protected _logger: LoggerService
-  protected _config: any
+  protected _globalConfigKeys: string[] = []
 
-  constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
-    this.id = localConfig.id ?? filenameRoot
+  constructor(
+    filenameRoot: string,
+    private readonly _localConfig: any,
+    private readonly _globalConfig: ConfigService,
+  ) {
+    this.id = this._localConfig.id ?? filenameRoot
     this._logger = new Logger(`${this.id} driver`)
     this._logger.log(`${this.name} (${this.id})${this.version ? ' v' + this.version : ''} loaded`)
   }
@@ -53,6 +57,11 @@ export abstract class Loadable implements ILoadable {
   protected getConfig<T>(key: string): T | undefined
   protected getConfig<T>(key: string, dflt: T): T
   protected getConfig<T>(key: string, dflt?: T) {
-    return get<T>(this._config, key) ?? dflt
+    const local = get<T>(this._localConfig, key)
+    if (local !== undefined) return local
+    const keyChain = [...this._globalConfigKeys, key].join('.')
+    return dflt === undefined
+      ? this._globalConfig.get<T>(keyChain)
+      : this._globalConfig.get<T>(keyChain, dflt)
   }
 }

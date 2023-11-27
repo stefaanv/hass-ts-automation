@@ -1,10 +1,49 @@
-actual-power-consumption (driver.hass / ValueStateUpdate) = 0.614 kW   (@ 19:17:55)
-energy_consumed_tariff_1 (driver.hass / ValueStateUpdate) = 1801.369 kWh   (@ 19:17:59)
-presence_6 (driver.hass / ValueStateUpdate) = on    (@ 19:18:05)
-light.keuken (driver.hass / ValueStateUpdate) = on    (@ 19:18:06)
-light.keuken_2 (driver.hass / ValueStateUpdate) = on    (@ 19:18:07)
-actual-power-consumption (driver.hass / ValueStateUpdate) = 0.545 kW   (@ 19:18:07)
-power_meter_active_power (driver.hass / ValueStateUpdate) = -550 W   (@ 19:18:12)
-power_meter_power_factor (driver.hass / ValueStateUpdate) = -0.859    (@ 19:18:12)
-power_meter_consumption (driver.hass / ValueStateUpdate) = 3895.14 kWh   (@ 19:18:12)
-presence_9 (driver.hass / ValueStateUpdate) = off    (@ 19:18:14)
+{
+  "type": "event",
+  "event": {
+    "event_type": "state_changed",
+    "data": {
+      "entity_id": "binary_sensor.presence_6",
+      "old_state": {
+        "entity_id": "binary_sensor.presence_6",
+        "state": "off",
+        "attributes": {
+          "on": true,
+          "device_class": "motion",
+          "friendly_name": "keuken_motion_multi"
+        },
+        "last_changed": "2023-11-27T19:30:04.046361+00:00",
+        "last_updated": "2023-11-27T19:30:04.046361+00:00",
+        "context": {
+          "id": "01HG9456ME8M1980K8EPR5Y1KB",
+          "parent_id": null,
+          "user_id": null
+        }
+      },
+      "new_state": {
+        "entity_id": "binary_sensor.presence_6",
+        "state": "on",
+        "attributes": {
+          "on": true,
+          "device_class": "motion",
+          "friendly_name": "keuken_motion_multi"
+        },
+        "last_changed": "2023-11-27T19:31:03.761933+00:00",
+        "last_updated": "2023-11-27T19:31:03.761933+00:00",
+        "context": {
+          "id": "01HG9470YHTPBSADK6HQVKQBPX",
+          "parent_id": null,
+          "user_id": null
+        }
+      }
+    },
+    "origin": "LOCAL",
+    "time_fired": "2023-11-27T19:31:03.761933+00:00",
+    "context": {
+      "id": "01HG9470YHTPBSADK6HQVKQBPX",
+      "parent_id": null,
+      "user_id": null
+    }
+  },
+  "id": 1
+}

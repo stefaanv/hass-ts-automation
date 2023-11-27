@@ -7,8 +7,10 @@ export class ValueStateUpdate extends StateUpdate {
     public state: string,
     public unit: string,
     public numberState?: number,
+    timestamp = new Date(),
   ) {
     super()
+    this.timestamp = timestamp
   }
 
   override toString() {

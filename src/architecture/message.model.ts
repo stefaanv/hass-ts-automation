@@ -14,13 +14,9 @@ export class Message<T extends IMessageContent = UnknownContent> {
   toString() {
     const strContent =
       this.content instanceof KnownContent
-        ? whiteBright(this.content.toString())
+        ? whiteBright(this.content.toString()) + '   ' + green(this.content.timeToString())
         : JSON.stringify(this.content).slice(0, 100)
-    return green(
-      `${yellow(this.entity)} (${this.origin} / ${this.content.type}) = ${whiteBright(
-        strContent,
-      )}   (@ ${this.content.timestamp.toLocaleTimeString()})`,
-    )
+    return green(`${yellow(this.entity)} (${this.origin} / ${this.content.type}) = ${strContent}`)
   }
 }
 
@@ -28,7 +24,7 @@ export type UnknownContent = any & IMessageContent
 
 export abstract class KnownContent implements IMessageContent {
   type = 'KnownContent'
-  constructor(public timestamp = new Date()) {}
+  public timestamp: Date
   timeToString() {
     return `@ ${this.timestamp.toLocaleTimeString()}`
   }

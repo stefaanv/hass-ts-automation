@@ -17,7 +17,7 @@ export abstract class DriverBase extends Loadable {
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     super(filenameRoot, localConfig, globalConfig)
     const globalKey = [GOBAL_CONFIG_PREFIX, this.id].join('.')
-    this._config = construct({ ...crush(globalConfig.get<any>(globalKey)), ...crush(localConfig) })
+    this._globalConfigKeys = [GOBAL_CONFIG_PREFIX, this.id]
     this._blockFilters = new MultiRegex(this.getConfig('blockFilters', []))
     this._selectFilters = new MultiRegex(this.getConfig('selectFilters', []), true)
     this._entityTranslation = this.getConfig('entityTranslation', {})

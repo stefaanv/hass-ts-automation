@@ -6,6 +6,9 @@ import { Logger } from '@nestjs/common'
 import { MultiRegex } from '@src/utilities'
 import { Message } from '@src/architecture/message.model'
 import { ValueStateUpdate } from '@src/architecture/known-messages/value-state-update.model'
+import { PresenceStateUpdate } from '@src/architecture/known-messages/presence-update.model'
+import { parseISO } from 'date-fns'
+import { utcToZonedTime } from 'date-fns-tz'
 
 export default class HassDriver extends DriverBase {
   public readonly name = 'Home Assistant'
@@ -90,16 +93,28 @@ export default class HassDriver extends DriverBase {
     return false
   }
 
-  transformKnownMessage(entity: string, nativeMessage: any): Message {
-    let content = nativeMessage
-    if (nativeMessage.type === 'event') {
-      const event: EventInfo = nativeMessage.event
+  //TODO !! test entity blocking/selecting before message transformation
+  transformKnownMessage(entity: string, natMsg: any): Message {
+    if (natMsg.type === 'event' && natMsg.event?.data?.new_state.attributes?.device_class === 'motion') {
+      const timestamp = utcToZonedTime(
+        parseISO(natMsg.event?.data?.new_state.last_updated),
+        'Europe/Brussels',
+      )
+      const presence = natMsg.event?.data?.new_state.state === 'on' ? 'present' : 'absent'
+      return new Message(this.origin, entity, new PresenceStateUpdate(presence, timestamp))
+    }
+    if (natMsg.type === 'event') {
+      const event: EventInfo = natMsg.event
       const newState = event.data?.new_state.state
       const numberState = isNaN(parseFloat(newState)) ? undefined : parseFloat(newState)
       const unit = event.data.new_state.attributes.unit_of_measurement ?? ''
-      content = new ValueStateUpdate(newState, unit, numberState)
+      const content = new ValueStateUpdate(newState, unit, numberState)
+      return new Message(this.origin, entity, content)
     }
-    return new Message(this.origin, entity, content)
+    if (JSON.stringify(natMsg).includes('presence') || entity.startsWith('light')) {
+      console.log(JSON.stringify(natMsg))
+    }
+    return new Message(this.origin, entity, natMsg)
   }
 
   private send(msg: OutgoingMessage) {
