@@ -75,7 +75,6 @@ export default class HassDriver extends DriverBase {
           const transformed = this.transformKnownMessage(entity, data)
           this.handleIncomingMessage(transformed)
         }
-        // this.processStateChangedEvents(entity!, data)
         break
     }
   }
@@ -108,53 +107,3 @@ export default class HassDriver extends DriverBase {
     this.ws.send(JSON.stringify(msg))
   }
 }
-
-/*
-
-ws.on('message', function message(buf: Buffer) {
-  const data: IncomingMessage = JSON.parse(buf.toString())
-  switch (data.type) {
-    case 'auth_required':
-      send({ type: 'auth', access_token })
-      break
-    case 'auth_ok':
-      send({ id: cmdIdCounter++, type: 'subscribe_events', event_type: 'state_changed' })
-      break
-    case 'result':
-      if (!data.success) {
-        console.error(data.error)
-        return
-      }
-      console.log(data)
-      break
-    case 'event':
-      printEvent(data.event)
-      break
-    default:
-      console.log(data)
-      break
-  }
-})
-
-function send(msg: OutgoingMessage) {
-  ws.send(JSON.stringify(msg))
-}
-
-function printEvent(event: EventInfo) {
-  const eventData: any = event.data.new_state
-  const newState = eventData.state + (eventData.attributes.unit_of_measurement ?? '')
-  delete eventData.entity_id
-  delete eventData.context
-  delete eventData.last_changed
-  delete eventData.last_updated
-  delete eventData.state
-  delete eventData.attributes.unit_of_measurement
-  delete eventData.attributes.friendly_name
-  if (
-    !event.data.entity_id.match(
-      /^sensor.power|^sensor.voltage|^sensor.current|^media_player|^sensor.inverter_pv|^sensor.slimmelezer/,
-    )
-  )
-    console.log(`${event.data.entity_id} => ` + `${newState}` + ` ${JSON.stringify(eventData)}`)
-}
-*/
