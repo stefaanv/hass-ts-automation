@@ -1,17 +1,18 @@
 import { Injectable, Logger, LoggerService } from '@nestjs/common'
-import { IDriver, DriverConstructorSchema, DriverSchema, DriverBase } from './driver.base'
+import { DriverBase } from './driver.base'
 import { tryit } from 'radash'
 import { EventEmitter2 } from 'eventemitter2'
 import { ConfigService } from '@nestjs/config'
 import { red, white } from 'ansi-colors'
 import { readdirSync } from 'fs'
 import { resolve } from 'path'
+import { ILoadable, LoadableConstructorSchema, LoadableSchema } from './loadable'
 
 const tryImport = tryit(async (file: string) => import(file))
 
 @Injectable()
 export class DriverLoader {
-  private readonly _drivers: IDriver[] = []
+  private readonly _drivers: ILoadable[] = []
   private readonly _log: LoggerService
 
   constructor(
@@ -51,14 +52,14 @@ export class DriverLoader {
       const driverFullPath = resolve(driverFolder, filename)
       const [error1, dcImp] = await tryImport(driverFullPath)
       const driverClass = dcImp.default
-      const [error2] = tryit(DriverConstructorSchema.parse)(driverClass)
+      const [error2] = tryit(LoadableConstructorSchema.parse)(driverClass)
       if (error1 || error2) {
         const error = error1 ?? error2
         this._log.error(`Driver ${filenameRoot} constructor is incorrect - ${error!.message}}`)
         return
       }
-      const driverInstance: IDriver = new driverClass(filenameRoot, localConfig, this._config)
-      const [error3] = tryit(DriverSchema.parse)(driverInstance)
+      const driverInstance: ILoadable = new driverClass(filenameRoot, localConfig, this._config)
+      const [error3] = tryit(LoadableSchema.parse)(driverInstance)
       if (error3) {
         this._log.error(`Driver ${filenameRoot} class has incorrect form - ${error3.message}}`)
         this._log.debug!(error3)

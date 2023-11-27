@@ -36,7 +36,6 @@ export abstract class Loadable implements ILoadable {
 
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     this.id = localConfig.id ?? filenameRoot
-    this._config = construct({ ...crush(globalConfig.get<any>(globalKey)), ...crush(localConfig) })
     this._logger = new Logger(`${this.id} driver`)
     this._logger.log(`${this.name} (${this.id})${this.version ? ' v' + this.version : ''} loaded`)
   }
