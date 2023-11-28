@@ -4,7 +4,7 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
 import { Message } from './message.model'
 import { StateUpdate } from './known-content/state-update.model'
 import { isAfter, subMinutes } from 'date-fns'
-import { first, mapEntries } from 'radash'
+import { first, mapEntries, mapValues } from 'radash'
 
 @Injectable()
 export class StateRepoService {
@@ -41,6 +41,10 @@ export class StateRepoService {
   }
 
   get currentStates() {
-    return mapEntries(this._history, (k, v) => [k, first(v)])
+    return Object.entries(this._history).map(([k, v]) => ({ entity: k, ...first(v) }))
+  }
+
+  currentState(entity: string) {
+    return this.currentStates.find(s => s.entity === entity)
   }
 }

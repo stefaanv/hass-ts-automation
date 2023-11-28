@@ -23,10 +23,12 @@ export class AppController {
 
   @Get('light/:state/:entity')
   setLightState(@Param('state') state: string, @Param('entity') entity: string) {
-    this._eventEmitter.emit(`command.light`, {
-      entity,
-      onOff: state,
-    })
-    return 'OK'
+    let onOff = state
+    if (state === 'toggle') {
+      const currentState = this.stateRepo.currentState(entity)
+      onOff = currentState && 'state' in currentState && currentState?.state === 'on' ? 'off' : 'on'
+    }
+    this._eventEmitter.emit(`command.light`, { entity, onOff })
+    return onOff
   }
 }

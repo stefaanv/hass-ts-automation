@@ -57,8 +57,9 @@ export default class HassDriver extends DriverBase {
     this.ws = new WebSocket(this.hassWsUrl)
     this.ws.on('error', console.error)
     this.ws.on('message', (buf: Buffer) => {
-      if (buf.toString().includes('result')) console.log(buf.toString())
-      this.processIncomingMessage(JSON.parse(buf.toString()))
+      const msg = buf.toString()
+      if (msg.includes('result') && msg.includes('"success": false')) console.log(msg)
+      this.processIncomingMessage(JSON.parse(msg))
     })
     DriverBase.eventEmitter.on('command.light', data => this.changeLight(data))
     return promise
@@ -68,12 +69,13 @@ export default class HassDriver extends DriverBase {
   entityFrom(nativeMessage: IncomingMessage): string | undefined {
     if (nativeMessage.type.startsWith('auth')) return undefined
     if (nativeMessage.type === 'event') return nativeMessage.event.data.entity_id
-    if (nativeMessage.type === 'result' && nativeMessage.result === null) return undefined
+    if (nativeMessage.type === 'result') return undefined
     console.error(`Add to entityFrom(): ${JSON.stringify(nativeMessage)}`)
     return undefined
   }
 
   changeLight(data: { entity: string; onOff: LightOnoffState }) {
+    const entityDef = this.commands.find(c => c.type === 'light' && c.entity === data.entity)
     const msg = {
       id: this.cmdIdCounter++,
       type: 'call_service',
@@ -86,11 +88,10 @@ export default class HassDriver extends DriverBase {
       // }
       // Optional
       target: {
-        entity_id: 'light.keuken_2',
+        entity_id: entityDef?.outEntity,
       },
     }
     this.ws.send(JSON.stringify(msg))
-    console.log(JSON.stringify(msg))
   }
 
   private processIncomingMessage(data: IncomingMessage) {

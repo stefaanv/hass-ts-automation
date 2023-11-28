@@ -37,7 +37,7 @@ export default {
     ],
   },
   commands: {
-    lights: [
+    light: [
       { achterdeur: 'light.achterdeur' },
       { bureau: 'light.bureau' },
       { keuken: 'light.keuken_2' },

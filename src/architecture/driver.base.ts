@@ -5,26 +5,27 @@ import { Loadable } from './loadable'
 import { first, isString, keys } from 'radash'
 
 const GOBAL_CONFIG_PREFIX = 'drivers'
-export interface IncomingEntities {
+export interface EntityDefinition {
   entity: string
   outEntity: string
   type: string
 }
-export type EntityDefinition = string | Record<string, string>
+export type EntityDefinitionConfig = string | Record<string, string>
 export interface IncomingEntityDefinitions {
-  motionDetectors: EntityDefinition[]
-  doorContacts: EntityDefinition[]
-  lights: EntityDefinition[]
-  lightLevel: EntityDefinition[]
+  motionDetectors: EntityDefinitionConfig[]
+  doorContacts: EntityDefinitionConfig[]
+  lights: EntityDefinitionConfig[]
+  lightLevel: EntityDefinitionConfig[]
+}
+
+export interface CommandDefinitions {
+  light: EntityDefinitionConfig[]
 }
 
 export abstract class DriverBase extends Loadable {
-  // protected readonly _blockFilters: MultiRegex
-  // protected readonly _selectFilters: MultiRegex
-  // protected readonly _entityTranslation: Record<string, string>
-  // protected readonly _bulkRename: RegexTemplateReplace
   static eventEmitter: EventEmitter2
-  protected readonly entityTypes: IncomingEntities[]
+  protected readonly entityTypes: EntityDefinition[] = []
+  protected readonly commands: EntityDefinition[] = []
 
   get origin() {
     return `driver.${this.id}`
@@ -33,33 +34,32 @@ export abstract class DriverBase extends Loadable {
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     super(filenameRoot, localConfig, globalConfig)
     this._globalConfigKeys = [GOBAL_CONFIG_PREFIX, this.id]
-    const incoming = this.getConfig<any>('incomingEntities')
-    this.entityTypes = Object.keys(incoming).flatMap((type: string) =>
-      (incoming[type] as (string | Record<string, string>)[]).map(entry => {
-        const entity = isString(entry) ? entry : first(keys(entry))!
-        return isString(entry)
-          ? { entity, outEntity: entry, type }
-          : { entity, outEntity: entry[entity], type }
-      }),
-    )
+    //TODO omzetting extraheren naar functie
+    const entityConfig = this.getConfig<IncomingEntityDefinitions>('incomingEntities')
+    if (entityConfig) {
+      this.entityTypes = Object.keys(entityConfig).flatMap((type: keyof IncomingEntityDefinitions) =>
+        (entityConfig[type] as (string | Record<string, string>)[]).map(entry => {
+          const entity = isString(entry) ? entry : first(keys(entry))!
+          return isString(entry)
+            ? { entity, outEntity: entry, type }
+            : { entity, outEntity: entry[entity], type }
+        }),
+      )
+    }
+    const commandConfig = this.getConfig<CommandDefinitions>('commands')
+    if (commandConfig) {
+      this.commands = Object.keys(commandConfig).flatMap((type: keyof CommandDefinitions) =>
+        (commandConfig[type] as (string | Record<string, string>)[]).map(entry => {
+          const entity = isString(entry) ? entry : first(keys(entry))!
+          return isString(entry)
+            ? { entity, outEntity: entry, type }
+            : { entity, outEntity: entry[entity], type }
+        }),
+      )
+    }
   }
 
-  // filter(entity: string): boolean {
-  //   if (this._blockFilters.test(entity)) return false
-  //   return this._selectFilters.test(entity)
-  // }
-
-  // translateEntityName(entity: string | undefined): string | undefined {
-  //   if (entity === undefined) return undefined
-  //   const bulk = this._bulkRename.transform(entity)
-  //   return this._entityTranslation[bulk] ?? bulk
-  // }
-
   sendMessage(entity: string, content: IMessageContent) {
-    // translate the entity name
-    // const trEntity = this.translateEntityName(entity)
-    // if (!trEntity || this._blockFilters.test(trEntity) || !this._selectFilters.test(trEntity)) return
-    // const message = new Message(this.origin, trEntity, content)
     const message = new Message(this.origin, entity, content)
 
     // debug log and distribute
