@@ -4,15 +4,17 @@ import { DriverBase } from '@src/architecture/driver.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
 import { MultiRegex, utcToLocal } from '@src/utilities'
-import { IMessageContent } from '@src/architecture/message.model'
+import { IMessageContent, KnownContent } from '@src/architecture/message.model'
 import { ValueStateUpdate } from '@src/architecture/known-content/value-state-update.model'
 import { appendFile, readFile } from 'fs/promises'
 import {
+  LightOnoffState,
   LightOnoffStateUpdate,
+  OpenCloseStateUpdate,
   PresenceStateUpdate,
 } from '@src/architecture/known-content/enum-state-update.models'
 import { LightDimStateUpdate } from '@src/architecture/known-content/single-value-update.models'
-import { first } from 'radash'
+import { crush, first, isString, keys, mapEntries, mapKeys } from 'radash'
 
 const logFilePath = 'C:\\Users\\stefa\\Documents\\projecten\\hass-ts-automation\\hass-driver.log'
 
@@ -25,18 +27,18 @@ export default class HassDriver extends DriverBase {
   private readonly hassWsUrl: string
   private readonly accessToken: string
   private startPromise: (value: boolean) => void
-  private readonly throttleFilter: MultiRegex
-  private readonly throttleCounters: Record<string, number> = {}
-  private readonly throttleAmount = 10
   private writtenToLog: string[] = []
+  private readonly entityTypes: { entity: string; outEntity: string; type: string }[]
+  private readonly sendAllMessages: boolean
 
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     super(filenameRoot, localConfig, globalConfig)
     this._logger = new Logger(this.name)
     this.hassWsUrl = this.getConfig('hassWsUrl', '')
     this.accessToken = this.getConfig('accessToken', '')
+    this.accessToken = this.getConfig('accessToken', '')
     this.debug = true
-    this.throttleFilter = new MultiRegex(this.getConfig<RegExp[]>('throttleFilter', []))
+    this.sendAllMessages = this.getConfig('sendAllMessages', false)
     readFile(logFilePath)
       .then(buffer => {
         const lines = buffer.toString().split('\r\n')
@@ -48,6 +50,15 @@ export default class HassDriver extends DriverBase {
           debugger
         }
       })
+    const incoming = this.getConfig<any>('incomingEntities')
+    this.entityTypes = Object.keys(incoming).flatMap((type: string) =>
+      (incoming[type] as (string | Record<string, string>)[]).map(entry => {
+        const entity = isString(entry) ? entry : first(keys(entry))!
+        return isString(entry)
+          ? { entity, outEntity: entry, type }
+          : { entity, outEntity: entry[entity], type }
+      }),
+    )
   }
 
   async start() {
@@ -56,8 +67,10 @@ export default class HassDriver extends DriverBase {
     this.ws = new WebSocket(this.hassWsUrl)
     this.ws.on('error', console.error)
     this.ws.on('message', (buf: Buffer) => {
+      if (buf.toString().includes('result')) console.log(buf.toString())
       this.processIncomingMessage(JSON.parse(buf.toString()))
     })
+    DriverBase.eventEmitter.on('command.light', data => this.changeLight(data))
     return promise
   }
   async stop() {}
@@ -68,6 +81,26 @@ export default class HassDriver extends DriverBase {
     if (nativeMessage.type === 'result' && nativeMessage.result === null) return undefined
     console.error(`Add to entityFrom(): ${JSON.stringify(nativeMessage)}`)
     return undefined
+  }
+
+  changeLight(data: { entity: string; onOff: LightOnoffState }) {
+    const msg = {
+      id: this.cmdIdCounter++,
+      type: 'call_service',
+      domain: 'light',
+      service: `turn_${data.onOff}`,
+      // Optional
+      // "service_data": {
+      //   "color_name": "beige",
+      //   "brightness": "101"
+      // }
+      // Optional
+      target: {
+        entity_id: 'light.keuken_2',
+      },
+    }
+    this.ws.send(JSON.stringify(msg))
+    console.log(JSON.stringify(msg))
   }
 
   private processIncomingMessage(data: IncomingMessage) {
@@ -91,11 +124,12 @@ export default class HassDriver extends DriverBase {
           appendFile(logFilePath, entity + ';' + JSON.stringify(data) + '\r\n')
           this.writtenToLog.push(entity)
         }
-        if (entity && this.throttle(entity)) {
+        if (entity) {
           if (!entity) return // don't process if entity returns undefined
           const transformed = this.transformKnownMessageContent(data)
-          if (!transformed) this.sendMessage(entity, { ...data, timestamp: new Date() })
-          else this.sendMessage(transformed.entity, transformed.content)
+          if (!transformed) {
+            if (this.sendAllMessages) this.sendMessage(entity, { ...data, timestamp: new Date() })
+          } else this.sendMessage(transformed.entity, transformed.content)
         }
         break
     }
@@ -105,53 +139,34 @@ export default class HassDriver extends DriverBase {
   transformKnownMessageContent(natMsg: any): { entity: string; content: IMessageContent } | undefined {
     if (natMsg.type === 'event') {
       const timestamp = utcToLocal(natMsg.event?.data?.new_state.last_updated)
-      const natEntity = (natMsg.event?.data?.entity_id as string) ?? '-=unknown=-'
-      const friendlyName = (
-        (natMsg.event?.data?.new_state?.attributes?.friendly_name as string) ?? ''
-      ).toLowerCase()
-      const entity = natEntity
+      const entity = (natMsg.event?.data?.entity_id as string) ?? '-=unknown=-'
+      const entityTypeTuple = this.entityTypes.find(et => et.entity === entity)
+      if (!entityTypeTuple) return undefined
+      let content: KnownContent | undefined = undefined
+      // extract common states
+      const oldOnoffState = natMsg.event?.data?.old_state.state ?? 'off'
+      const newOnoffState = natMsg.event?.data?.new_state.state ?? 'off'
 
-      if (natMsg.event?.data?.new_state.attributes?.device_class === 'motion') {
-        const presence = natMsg.event?.data?.new_state.state === 'on' ? 'present' : 'absent'
-        const outEntity = entity.replace(/^binary_sensor\./, '')
-        return {
-          entity: outEntity,
-          content: new PresenceStateUpdate(presence, timestamp),
-        }
-      }
-
-      if ((natMsg.event?.data?.entity_id ?? '').startsWith('light')) {
-        const oldOnoffState = natMsg.event?.data?.old_state.state ?? 'off'
-        const newOnoffState = natMsg.event?.data?.new_state.state ?? 'off'
-        const oldDimState = natMsg.event?.data?.old_state.attributes.brightness ?? 0
-        const newDimState = natMsg.event?.data?.new_state.attributes.brightness ?? 0
-        const outEntity = entity.replace(/^light\./, '')
-
-        if (oldOnoffState !== newOnoffState) {
-          return {
-            entity: outEntity,
-            content: new LightOnoffStateUpdate(newOnoffState == 'on' ? 'on' : 'off', timestamp),
+      switch (entityTypeTuple.type) {
+        case 'motionDetectors':
+          content = new PresenceStateUpdate(
+            natMsg.event?.data?.new_state.state === 'on' ? 'present' : 'absent',
+            timestamp,
+          )
+          return { entity: entityTypeTuple.outEntity, content }
+        case 'doorContacts':
+          content = new OpenCloseStateUpdate(newOnoffState == 'on' ? 'open' : 'closed', timestamp)
+          return { entity: entityTypeTuple.outEntity, content }
+        case 'lights':
+          const oldDimState = natMsg.event?.data?.old_state.attributes.brightness ?? 0
+          const newDimState = natMsg.event?.data?.new_state.attributes.brightness ?? 0
+          if (oldOnoffState !== newOnoffState) {
+            content = new LightOnoffStateUpdate(newOnoffState == 'on' ? 'on' : 'off', timestamp)
           }
-        }
-        if (oldDimState !== newDimState) {
-          return {
-            entity: outEntity,
-            content: new LightDimStateUpdate(newDimState),
+          if (!content && oldDimState !== newDimState) {
+            content = new LightDimStateUpdate(newDimState)
           }
-        }
-      }
-
-      if ((natMsg.event?.data?.entity_id ?? '').startsWith('binary-switch')) {
-        const oldOnoffState = natMsg.event?.data?.old_state.state ?? 'off'
-        const newOnoffState = natMsg.event?.data?.new_state.state ?? 'off'
-        const outEntity = entity.replace(/^light\./, '')
-
-        // if (oldOnoffState !== newOnoffState) {
-        //   return {
-        //     entity: outEntity,
-        //     content: new OpenCloseStateUpdate(newOnoffState == 'on' ? 'on' : 'off', timestamp),
-        //   }
-        // }
+          return !content ? undefined : { entity: entityTypeTuple.outEntity, content }
       }
 
       // default valueUpdate
@@ -159,21 +174,9 @@ export default class HassDriver extends DriverBase {
       const newState = event.data?.new_state.state
       const numberState = isNaN(parseFloat(newState)) ? undefined : parseFloat(newState)
       const unit = event.data.new_state.attributes.unit_of_measurement ?? ''
-      const content = new ValueStateUpdate(newState, unit, numberState)
-      return { entity, content }
+      return { entity, content: new ValueStateUpdate(newState, unit, numberState) }
     }
     return undefined
-  }
-
-  throttle(entity: string) {
-    if (!this.throttleFilter.test(entity)) return true
-    const counter = this.throttleCounters[entity]
-    if (counter === undefined || counter === this.throttleAmount) {
-      this.throttleCounters[entity] = 0
-      return true
-    }
-    this.throttleCounters[entity]++
-    return false
   }
 
   private sendToHass(msg: OutgoingMessage) {
