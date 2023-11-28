@@ -28,7 +28,6 @@ export default class HassDriver extends DriverBase {
   private readonly accessToken: string
   private startPromise: (value: boolean) => void
   private writtenToLog: string[] = []
-  private readonly entityTypes: { entity: string; outEntity: string; type: string }[]
   private readonly sendAllMessages: boolean
 
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
@@ -50,15 +49,6 @@ export default class HassDriver extends DriverBase {
           debugger
         }
       })
-    const incoming = this.getConfig<any>('incomingEntities')
-    this.entityTypes = Object.keys(incoming).flatMap((type: string) =>
-      (incoming[type] as (string | Record<string, string>)[]).map(entry => {
-        const entity = isString(entry) ? entry : first(keys(entry))!
-        return isString(entry)
-          ? { entity, outEntity: entry, type }
-          : { entity, outEntity: entry[entity], type }
-      }),
-    )
   }
 
   async start() {

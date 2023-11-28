@@ -2,8 +2,21 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ConfigService } from '@nestjs/config'
 import { IMessageContent, Message } from './message.model'
 import { Loadable } from './loadable'
+import { first, isString, keys } from 'radash'
 
 const GOBAL_CONFIG_PREFIX = 'drivers'
+export interface IncomingEntities {
+  entity: string
+  outEntity: string
+  type: string
+}
+export type EntityDefinition = string | Record<string, string>
+export interface IncomingEntityDefinitions {
+  motionDetectors: EntityDefinition[]
+  doorContacts: EntityDefinition[]
+  lights: EntityDefinition[]
+  lightLevel: EntityDefinition[]
+}
 
 export abstract class DriverBase extends Loadable {
   // protected readonly _blockFilters: MultiRegex
@@ -11,6 +24,7 @@ export abstract class DriverBase extends Loadable {
   // protected readonly _entityTranslation: Record<string, string>
   // protected readonly _bulkRename: RegexTemplateReplace
   static eventEmitter: EventEmitter2
+  protected readonly entityTypes: IncomingEntities[]
 
   get origin() {
     return `driver.${this.id}`
@@ -19,10 +33,15 @@ export abstract class DriverBase extends Loadable {
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     super(filenameRoot, localConfig, globalConfig)
     this._globalConfigKeys = [GOBAL_CONFIG_PREFIX, this.id]
-    // this._blockFilters = new MultiRegex(this.getConfig('blockFilters', []))
-    // this._selectFilters = new MultiRegex(this.getConfig('selectFilters', []), true)
-    // this._entityTranslation = this.getConfig('entityTranslation', {})
-    // this._bulkRename = new RegexTemplateReplace(this.getConfig('bulkRename'))
+    const incoming = this.getConfig<any>('incomingEntities')
+    this.entityTypes = Object.keys(incoming).flatMap((type: string) =>
+      (incoming[type] as (string | Record<string, string>)[]).map(entry => {
+        const entity = isString(entry) ? entry : first(keys(entry))!
+        return isString(entry)
+          ? { entity, outEntity: entry, type }
+          : { entity, outEntity: entry[entity], type }
+      }),
+    )
   }
 
   // filter(entity: string): boolean {
