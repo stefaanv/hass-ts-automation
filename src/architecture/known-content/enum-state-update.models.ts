@@ -1,4 +1,3 @@
-import { KnownContent } from '../message.model'
 import { StateUpdate } from './state-update.model'
 
 export abstract class EnumStateUpdate<T extends string> extends StateUpdate {
@@ -15,12 +14,10 @@ export abstract class EnumStateUpdate<T extends string> extends StateUpdate {
 }
 
 export type PresenceState = 'present' | 'absent'
+export class PresenceStateUpdate extends EnumStateUpdate<PresenceState> {}
 
-export class PresenceStateUpdate extends EnumStateUpdate<PresenceState> {
-  constructor(
-    public state: PresenceState,
-    timestamp: Date,
-  ) {
-    super(state, timestamp)
-  }
-}
+export type LightOnoffState = 'on' | 'off'
+export class LightOnoffStateUpdate extends EnumStateUpdate<LightOnoffState> {}
+
+export type OpenCloseState = 'open' | 'closed'
+export class OpenCloseStateUpdate extends EnumStateUpdate<OpenCloseState> {}

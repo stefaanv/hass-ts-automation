@@ -3,14 +3,16 @@ import { EventInfo, IncomingMessage, OutgoingMessage } from './hass/hass-message
 import { DriverBase } from '@src/architecture/driver.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
-import { MultiRegex } from '@src/utilities'
+import { MultiRegex, utcToLocal } from '@src/utilities'
 import { IMessageContent } from '@src/architecture/message.model'
 import { ValueStateUpdate } from '@src/architecture/known-content/value-state-update.model'
-import { parseISO } from 'date-fns'
-import { utcToZonedTime } from 'date-fns-tz'
 import { appendFile, readFile } from 'fs/promises'
-import { tryit } from 'radash'
-import { PresenceStateUpdate } from '@src/architecture/known-content/enum-state-update.models'
+import {
+  LightOnoffStateUpdate,
+  PresenceStateUpdate,
+} from '@src/architecture/known-content/enum-state-update.models'
+import { LightDimStateUpdate } from '@src/architecture/known-content/single-value-update.models'
+import { first } from 'radash'
 
 const logFilePath = 'C:\\Users\\stefa\\Documents\\projecten\\hass-ts-automation\\hass-driver.log'
 
@@ -38,9 +40,14 @@ export default class HassDriver extends DriverBase {
     readFile(logFilePath)
       .then(buffer => {
         const lines = buffer.toString().split('\r\n')
-        this.writtenToLog = lines.map(l => this.entityFrom(JSON.parse(l)) ?? 'unknown')
+        this.writtenToLog = lines.filter(l => l.length > 5).map(l => first(l.split(';')) ?? '')
       })
-      .catch(() => {})
+      .catch(error => {
+        if (error.code !== 'ENOENT') {
+          console.error(error)
+          debugger
+        }
+      })
   }
 
   async start() {
@@ -81,35 +88,79 @@ export default class HassDriver extends DriverBase {
         break
       default:
         if (entity && !this.writtenToLog.includes(entity)) {
-          appendFile(logFilePath, JSON.stringify(data) + '\r\n')
+          appendFile(logFilePath, entity + ';' + JSON.stringify(data) + '\r\n')
           this.writtenToLog.push(entity)
         }
         if (entity && this.throttle(entity)) {
           if (!entity) return // don't process if entity returns undefined
           const transformed = this.transformKnownMessageContent(data)
-          this.sendMessage(entity, transformed ? transformed : { ...data, timestamp: new Date() })
+          if (!transformed) this.sendMessage(entity, { ...data, timestamp: new Date() })
+          else this.sendMessage(transformed.entity, transformed.content)
         }
         break
     }
   }
 
   //TODO !! test entity blocking/selecting before message transformation
-  transformKnownMessageContent(natMsg: any): IMessageContent | undefined {
-    if (natMsg.type === 'event' && natMsg.event?.data?.new_state.attributes?.device_class === 'motion') {
-      const timestamp = utcToZonedTime(
-        parseISO(natMsg.event?.data?.new_state.last_updated),
-        'Europe/Brussels',
-      )
-      const presence = natMsg.event?.data?.new_state.state === 'on' ? 'present' : 'absent'
-      return new PresenceStateUpdate(presence, timestamp)
-    }
+  transformKnownMessageContent(natMsg: any): { entity: string; content: IMessageContent } | undefined {
     if (natMsg.type === 'event') {
+      const timestamp = utcToLocal(natMsg.event?.data?.new_state.last_updated)
+      const natEntity = (natMsg.event?.data?.entity_id as string) ?? '-=unknown=-'
+      const friendlyName = (
+        (natMsg.event?.data?.new_state?.attributes?.friendly_name as string) ?? ''
+      ).toLowerCase()
+      const entity = natEntity
+
+      if (natMsg.event?.data?.new_state.attributes?.device_class === 'motion') {
+        const presence = natMsg.event?.data?.new_state.state === 'on' ? 'present' : 'absent'
+        const outEntity = entity.replace(/^binary_sensor\./, '')
+        return {
+          entity: outEntity,
+          content: new PresenceStateUpdate(presence, timestamp),
+        }
+      }
+
+      if ((natMsg.event?.data?.entity_id ?? '').startsWith('light')) {
+        const oldOnoffState = natMsg.event?.data?.old_state.state ?? 'off'
+        const newOnoffState = natMsg.event?.data?.new_state.state ?? 'off'
+        const oldDimState = natMsg.event?.data?.old_state.attributes.brightness ?? 0
+        const newDimState = natMsg.event?.data?.new_state.attributes.brightness ?? 0
+        const outEntity = entity.replace(/^light\./, '')
+
+        if (oldOnoffState !== newOnoffState) {
+          return {
+            entity: outEntity,
+            content: new LightOnoffStateUpdate(newOnoffState == 'on' ? 'on' : 'off', timestamp),
+          }
+        }
+        if (oldDimState !== newDimState) {
+          return {
+            entity: outEntity,
+            content: new LightDimStateUpdate(newDimState),
+          }
+        }
+      }
+
+      if ((natMsg.event?.data?.entity_id ?? '').startsWith('binary-switch')) {
+        const oldOnoffState = natMsg.event?.data?.old_state.state ?? 'off'
+        const newOnoffState = natMsg.event?.data?.new_state.state ?? 'off'
+        const outEntity = entity.replace(/^light\./, '')
+
+        // if (oldOnoffState !== newOnoffState) {
+        //   return {
+        //     entity: outEntity,
+        //     content: new OpenCloseStateUpdate(newOnoffState == 'on' ? 'on' : 'off', timestamp),
+        //   }
+        // }
+      }
+
+      // default valueUpdate
       const event: EventInfo = natMsg.event
       const newState = event.data?.new_state.state
       const numberState = isNaN(parseFloat(newState)) ? undefined : parseFloat(newState)
       const unit = event.data.new_state.attributes.unit_of_measurement ?? ''
       const content = new ValueStateUpdate(newState, unit, numberState)
-      return content
+      return { entity, content }
     }
     return undefined
   }
