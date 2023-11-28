@@ -12,5 +12,7 @@ export default {
     power_consumed: 'actual-power-consumption',
     'binary_sensor.presence_6': 'presence_keuken',
     'binary_sensor.presence_9': 'presence_living_eethoek',
+    'binary_sensor.presence_14': 'presence_bureau',
+    'binary_sensor.presence_20': 'presence_buiten_achter',
   },
 }

@@ -4,7 +4,7 @@ import { DriverBase } from '@src/architecture/driver.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
 import { MultiRegex } from '@src/utilities'
-import { Message } from '@src/architecture/message.model'
+import { IMessageContent, Message } from '@src/architecture/message.model'
 import { ValueStateUpdate } from '@src/architecture/known-messages/value-state-update.model'
 import { PresenceStateUpdate } from '@src/architecture/known-messages/presence-update.model'
 import { parseISO } from 'date-fns'
@@ -16,17 +16,12 @@ export default class HassDriver extends DriverBase {
   public readonly id = 'hass'
   private cmdIdCounter = 1
   private ws: WebSocket
-  private readonly started = false
   private readonly hassWsUrl: string
   private readonly accessToken: string
   private startPromise: (value: boolean) => void
   private readonly throttleFilter: MultiRegex
   private readonly throttleCounters: Record<string, number> = {}
   private readonly throttleAmount = 10
-
-  get origin() {
-    return `driver.${this.id}`
-  }
 
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     super(filenameRoot, localConfig, globalConfig)
@@ -62,11 +57,11 @@ export default class HassDriver extends DriverBase {
     switch (data.type) {
       case 'auth_required':
         this.logDebug(`Connected to HASS ${data.ha_version ?? ''}, attempting logon`)
-        this.send({ type: 'auth', access_token: this.accessToken })
+        this.sendToHass({ type: 'auth', access_token: this.accessToken })
         break
       case 'auth_ok':
         this.logDebug(`Logon succeeded`)
-        this.send({ id: this.cmdIdCounter++, type: 'subscribe_events', event_type: 'state_changed' })
+        this.sendToHass({ id: this.cmdIdCounter++, type: 'subscribe_events', event_type: 'state_changed' })
         this.startPromise(true)
         break
       case 'auth_invalid':
@@ -75,11 +70,34 @@ export default class HassDriver extends DriverBase {
         break
       default:
         if (entity && this.throttle(entity)) {
-          const transformed = this.transformKnownMessage(entity, data)
-          this.handleIncomingMessage(transformed)
+          const entity = this.entityFrom(data)
+          if (!entity) return // don't process if entity returns undefined
+          const transformed = this.transformKnownMessageContent(data)
+          this.sendMessage(entity, transformed ? transformed : { ...data, timestamp: new Date() })
         }
         break
     }
+  }
+
+  //TODO !! test entity blocking/selecting before message transformation
+  transformKnownMessageContent(natMsg: any): IMessageContent | undefined {
+    if (natMsg.type === 'event' && natMsg.event?.data?.new_state.attributes?.device_class === 'motion') {
+      const timestamp = utcToZonedTime(
+        parseISO(natMsg.event?.data?.new_state.last_updated),
+        'Europe/Brussels',
+      )
+      const presence = natMsg.event?.data?.new_state.state === 'on' ? 'present' : 'absent'
+      return new PresenceStateUpdate(presence, timestamp)
+    }
+    if (natMsg.type === 'event') {
+      const event: EventInfo = natMsg.event
+      const newState = event.data?.new_state.state
+      const numberState = isNaN(parseFloat(newState)) ? undefined : parseFloat(newState)
+      const unit = event.data.new_state.attributes.unit_of_measurement ?? ''
+      const content = new ValueStateUpdate(newState, unit, numberState)
+      return content
+    }
+    return undefined
   }
 
   throttle(entity: string) {
@@ -93,31 +111,7 @@ export default class HassDriver extends DriverBase {
     return false
   }
 
-  //TODO !! test entity blocking/selecting before message transformation
-  transformKnownMessage(entity: string, natMsg: any): Message {
-    if (natMsg.type === 'event' && natMsg.event?.data?.new_state.attributes?.device_class === 'motion') {
-      const timestamp = utcToZonedTime(
-        parseISO(natMsg.event?.data?.new_state.last_updated),
-        'Europe/Brussels',
-      )
-      const presence = natMsg.event?.data?.new_state.state === 'on' ? 'present' : 'absent'
-      return new Message(this.origin, entity, new PresenceStateUpdate(presence, timestamp))
-    }
-    if (natMsg.type === 'event') {
-      const event: EventInfo = natMsg.event
-      const newState = event.data?.new_state.state
-      const numberState = isNaN(parseFloat(newState)) ? undefined : parseFloat(newState)
-      const unit = event.data.new_state.attributes.unit_of_measurement ?? ''
-      const content = new ValueStateUpdate(newState, unit, numberState)
-      return new Message(this.origin, entity, content)
-    }
-    if (JSON.stringify(natMsg).includes('presence') || entity.startsWith('light')) {
-      console.log(JSON.stringify(natMsg))
-    }
-    return new Message(this.origin, entity, natMsg)
-  }
-
-  private send(msg: OutgoingMessage) {
+  private sendToHass(msg: OutgoingMessage) {
     this.ws.send(JSON.stringify(msg))
   }
 }
