@@ -1,8 +1,7 @@
 import { KnownContent } from '../message.model'
 
 export abstract class StateUpdate extends KnownContent {
-  constructor() {
-    super()
+  constructor(timestamp = new Date()) {
+    super(timestamp)
   }
-  type = 'StateUpdate'
 }

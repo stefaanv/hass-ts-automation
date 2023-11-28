@@ -4,11 +4,15 @@ import { DriverBase } from '@src/architecture/driver.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
 import { MultiRegex } from '@src/utilities'
-import { IMessageContent, Message } from '@src/architecture/message.model'
-import { ValueStateUpdate } from '@src/architecture/known-messages/value-state-update.model'
-import { PresenceStateUpdate } from '@src/architecture/known-messages/presence-update.model'
+import { IMessageContent } from '@src/architecture/message.model'
+import { ValueStateUpdate } from '@src/architecture/known-content/value-state-update.model'
 import { parseISO } from 'date-fns'
 import { utcToZonedTime } from 'date-fns-tz'
+import { appendFile, readFile } from 'fs/promises'
+import { tryit } from 'radash'
+import { PresenceStateUpdate } from '@src/architecture/known-content/enum-state-update.models'
+
+const logFilePath = 'C:\\Users\\stefa\\Documents\\projecten\\hass-ts-automation\\hass-driver.log'
 
 export default class HassDriver extends DriverBase {
   public readonly name = 'Home Assistant'
@@ -22,6 +26,7 @@ export default class HassDriver extends DriverBase {
   private readonly throttleFilter: MultiRegex
   private readonly throttleCounters: Record<string, number> = {}
   private readonly throttleAmount = 10
+  private writtenToLog: string[] = []
 
   constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
     super(filenameRoot, localConfig, globalConfig)
@@ -30,6 +35,12 @@ export default class HassDriver extends DriverBase {
     this.accessToken = this.getConfig('accessToken', '')
     this.debug = true
     this.throttleFilter = new MultiRegex(this.getConfig<RegExp[]>('throttleFilter', []))
+    readFile(logFilePath)
+      .then(buffer => {
+        const lines = buffer.toString().split('\r\n')
+        this.writtenToLog = lines.map(l => this.entityFrom(JSON.parse(l)) ?? 'unknown')
+      })
+      .catch(() => {})
   }
 
   async start() {
@@ -69,8 +80,11 @@ export default class HassDriver extends DriverBase {
         this.startPromise(false)
         break
       default:
+        if (entity && !this.writtenToLog.includes(entity)) {
+          appendFile(logFilePath, JSON.stringify(data) + '\r\n')
+          this.writtenToLog.push(entity)
+        }
         if (entity && this.throttle(entity)) {
-          const entity = this.entityFrom(data)
           if (!entity) return // don't process if entity returns undefined
           const transformed = this.transformKnownMessageContent(data)
           this.sendMessage(entity, transformed ? transformed : { ...data, timestamp: new Date() })

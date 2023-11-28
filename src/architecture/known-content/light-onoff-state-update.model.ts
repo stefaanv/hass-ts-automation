@@ -1,12 +1,10 @@
 import { StateUpdate } from './state-update.model'
 
-export type PresenceState = 'present' | 'absent'
+export type LightOnoffState = 'on' | 'off'
 
-export class PresenceStateUpdate extends StateUpdate {
-  type = 'PresenceStateUpdate'
-
+export class LightOnoffStateUpdate extends StateUpdate {
   constructor(
-    public state: PresenceState,
+    public state: LightOnoffState,
     timestamp: Date,
   ) {
     super()

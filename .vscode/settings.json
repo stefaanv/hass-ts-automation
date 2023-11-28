@@ -1,4 +1,5 @@
 {
   "autoHide.autoHidePanel": false,
-  "material-icon-theme.languages.associations": {}
+  "material-icon-theme.languages.associations": {},
+  "autoHide.autoHideSideBar": false
 }
