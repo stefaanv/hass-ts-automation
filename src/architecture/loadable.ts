@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { ConfigService } from '@nestjs/config'
 import { Logger, LoggerService } from '@nestjs/common'
-import { construct, crush, get } from 'radash'
+import { construct, crush, get } from '@bruyland/utilities'
 
 export const LoadableSchema = z.object({
   name: z.string(),

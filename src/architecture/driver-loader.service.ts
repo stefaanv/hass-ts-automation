@@ -1,6 +1,6 @@
 import { Injectable, Logger, LoggerService } from '@nestjs/common'
 import { DriverBase } from './driver.base'
-import { tryit } from 'radash'
+import { tryit } from '@bruyland/utilities'
 import { EventEmitter2 } from 'eventemitter2'
 import { ConfigService } from '@nestjs/config'
 import { red, white } from 'ansi-colors'

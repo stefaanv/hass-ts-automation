@@ -1,7 +1,7 @@
 import { parseISO } from 'date-fns'
 import { utcToZonedTime } from 'date-fns-tz'
 import { render } from 'mustache'
-import { isString } from 'radash'
+import { isString } from '@bruyland/utilities'
 
 export const TZ = 'Europe/Brussels'
 
@@ -9,7 +9,7 @@ export class MultiRegex {
   constructor(
     private readonly regexes: RegExp[],
     private readonly _emptyResult = false,
-  ) {}
+  ) { }
   test(value: string) {
     if (this.regexes.length === 0) return this._emptyResult
     return this.regexes.some(r => r.test(value))
@@ -17,7 +17,7 @@ export class MultiRegex {
 }
 
 export class RegexTemplateReplace {
-  constructor(private readonly definition?: { regex: RegExp; template: string }) {}
+  constructor(private readonly definition?: { regex: RegExp; template: string }) { }
   transform(value: string) {
     if (this.definition === undefined) return value
     const object = value.match(this.definition.regex)?.groups
