@@ -1,19 +1,19 @@
 import * as WebSocket from 'ws'
-import { EventInfo, IncomingMessage, OutgoingMessage } from './hass/hass-message.types'
+import { EventInfo, IncomingMessage, OutgoingMessage } from './hass/hass-message.types.ts.disabled'
 import { DriverBase } from '@src/architecture/driver.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
 import { utcToLocal } from '@src/utilities'
-import { IMessageContent, KnownContent } from '@src/architecture/message.model'
-import { ValueStateUpdate } from '@src/event-models/value-state-update.model'
+import { IMessageContent, KnownContent } from '@src/architecture/event-models/message.model'
+import { ValueStateUpdate } from '@src/architecture/event-models/value-state-update.model'
 import { appendFile, readFile } from 'fs/promises'
 import {
   LightOnoffState,
   LightOnoffStateUpdate,
   OpenCloseStateUpdate,
   PresenceStateUpdate,
-} from '@src/event-models/enum-state-update.model'
-import { LightDimStateUpdate } from '@src/event-models/single-value-update.model'
+} from '@src/architecture/event-models/enum-state-update.model'
+import { LightDimStateUpdate } from '@src/architecture/event-models/single-value-update.model'
 import { first } from '@bruyland/utilities'
 
 const logFilePath = 'C:\\Users\\stefa\\Documents\\projecten\\hass-ts-automation\\hass-driver.log'
@@ -64,7 +64,7 @@ export default class HassDriver extends DriverBase {
     DriverBase.eventEmitter.on('command.light', (data: any) => this.changeLight(data))
     return promise
   }
-  async stop() { }
+  async stop() {}
 
   entityFrom(nativeMessage: IncomingMessage): string | undefined {
     if (nativeMessage.type.startsWith('auth')) return undefined

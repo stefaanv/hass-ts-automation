@@ -1,8 +1,8 @@
 import { Injectable, Logger, LoggerService } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
-import { Message } from './message.model'
-import { StateUpdate } from '../event-models/state-update.model'
+import { Message } from './event-models/message.model'
+import { StateUpdate } from './event-models/state-update.model'
 import { isAfter, subMinutes } from 'date-fns'
 import { first, mapEntries, mapValues } from '@bruyland/utilities'
 
@@ -24,7 +24,7 @@ export class StateRepoService {
   @OnEvent('driver.*') //TODO: alle driver events
   receiveEvent(message: Message) {
     if (message.content instanceof StateUpdate) {
-      const entity = message.entity
+      const entity = message.entityName
       if (!this._history[entity]) this._history[entity] = []
       this._history[entity].unshift(message.content)
       this.clearSingle(entity)

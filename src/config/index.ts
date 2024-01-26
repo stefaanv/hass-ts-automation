@@ -6,7 +6,11 @@ export default () => ({
   driverExtension: '.driver.js',
   configExtension: '.config.js',
   keepSensorHistory: 10,
-  drivers: {
+  integrations: {
+    dummy: {
+      test: 'my test config string',
+      entities: ['entity-one', 'entity-two'],
+    },
     hass: {
       hassWsUrl: 'ws://192.168.0.3:8123/api/websocket',
     },

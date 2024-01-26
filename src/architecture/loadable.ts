@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { ConfigService } from '@nestjs/config'
 import { Logger, LoggerService } from '@nestjs/common'
-import { construct, crush, get } from '@bruyland/utilities'
+import { get } from '@bruyland/utilities'
 
 export const LoadableSchema = z.object({
   name: z.string(),
@@ -22,44 +22,31 @@ export const LoadableConstructorSchema = z
   )
   .returns(LoadableSchema)
 
-export interface ILoadable {
-  name: string
-  id: string
-  version: string
-  start: () => Promise<boolean>
-  stop: () => Promise<void>
-}
+export type ILoadable = z.infer<typeof LoadableSchema>
 
+//TODO: implementatie proberen op te halen met zod-class
+// https://www.npmjs.com/package/zod-class
 export abstract class Loadable implements ILoadable {
-  protected _logger: LoggerService
-  protected _globalConfigKeys: string[] = []
-
-  constructor(
-    filenameRoot: string,
-    private readonly _localConfig: any,
-    private readonly _globalConfig: ConfigService,
-  ) {
-    this.id = this._localConfig.id ?? filenameRoot
-    this._logger = new Logger(`${this.id} driver`)
-    this._logger.log(`${this.name} (${this.id})${this.version ? ' v' + this.version : ''} loaded`)
-  }
-  public readonly name: string
-  public readonly version: string
-  public readonly id: string
+  public abstract name: string
+  public abstract version: string
+  public abstract id: string
   abstract start(): Promise<boolean>
   abstract stop(): Promise<void>
+  protected abstract get globalConfigKeyChain(): string[]
+
+  constructor(
+    private readonly _localConfig: any, // content of the config file with the same name as the driver file
+    private readonly _globalConfig: ConfigService,
+  ) {}
 
   public debug: boolean = false
-  protected logDebug(message: any, ...optionalParams: any[]) {
-    if (this.debug) this._logger.debug!(message, ...optionalParams)
-  }
 
   protected getConfig<T>(key: string): T | undefined
   protected getConfig<T>(key: string, dflt: T): T
   protected getConfig<T>(key: string, dflt?: T) {
     const local = get<T>(this._localConfig, key)
     if (local !== undefined) return local
-    const keyChain = [...this._globalConfigKeys, key].join('.')
+    const keyChain = [...this.globalConfigKeyChain, key].join('.')
     return dflt === undefined
       ? this._globalConfig.get<T>(keyChain)
       : this._globalConfig.get<T>(keyChain, dflt)
