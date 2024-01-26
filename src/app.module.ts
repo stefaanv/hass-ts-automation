@@ -8,6 +8,9 @@ import { AutomationService } from './architecture/automation.service'
 import { DriverLoader } from './architecture/driver-loader.service'
 import { StateRepoService } from './architecture/state-repo.service'
 
+//TODO standaard events in ander kleur afdrukken !
+//TODO ook gekende messages met toString afdrukken
+
 @Module({
   imports: [
     EventEmitterModule.forRoot({ wildcard: true }),
