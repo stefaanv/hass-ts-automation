@@ -1,4 +1,4 @@
-import { crush, construct, get } from 'radash'
+import { crush, construct, get } from '@bruyland/utilities'
 
 const a = {
   name: 'name',

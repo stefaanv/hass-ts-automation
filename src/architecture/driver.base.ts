@@ -2,7 +2,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ConfigService } from '@nestjs/config'
 import { IMessageContent, Message } from './message.model'
 import { Loadable } from './loadable'
-import { first, isString, keys } from 'radash'
+import { first, isString, keys } from '@bruyland/utilities'
 
 const GOBAL_CONFIG_PREFIX = 'drivers'
 export interface EntityDefinition {

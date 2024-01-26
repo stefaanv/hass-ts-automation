@@ -2,9 +2,9 @@ import { Injectable, Logger, LoggerService } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
 import { Message } from './message.model'
-import { StateUpdate } from './known-content/state-update.model'
+import { StateUpdate } from '../event-models/state-update.model'
 import { isAfter, subMinutes } from 'date-fns'
-import { first, mapEntries, mapValues } from 'radash'
+import { first, mapEntries, mapValues } from '@bruyland/utilities'
 
 @Injectable()
 export class StateRepoService {

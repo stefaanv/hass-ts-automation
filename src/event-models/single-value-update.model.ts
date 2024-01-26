@@ -15,4 +15,4 @@ export abstract class SingleValueUpdate extends StateUpdate {
   }
 }
 
-export class LightDimStateUpdate extends SingleValueUpdate {}
+export class LightDimStateUpdate extends SingleValueUpdate { }

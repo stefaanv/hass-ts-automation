@@ -3,18 +3,18 @@ import { EventInfo, IncomingMessage, OutgoingMessage } from './hass/hass-message
 import { DriverBase } from '@src/architecture/driver.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
-import { MultiRegex, utcToLocal } from '@src/utilities'
+import { utcToLocal } from '@src/utilities'
 import { IMessageContent, KnownContent } from '@src/architecture/message.model'
-import { ValueStateUpdate } from '@src/architecture/known-content/value-state-update.model'
+import { ValueStateUpdate } from '@src/event-models/value-state-update.model'
 import { appendFile, readFile } from 'fs/promises'
 import {
   LightOnoffState,
   LightOnoffStateUpdate,
   OpenCloseStateUpdate,
   PresenceStateUpdate,
-} from '@src/architecture/known-content/enum-state-update.models'
-import { LightDimStateUpdate } from '@src/architecture/known-content/single-value-update.models'
-import { crush, first, isString, keys, mapEntries, mapKeys } from 'radash'
+} from '@src/event-models/enum-state-update.model'
+import { LightDimStateUpdate } from '@src/event-models/single-value-update.model'
+import { first } from '@bruyland/utilities'
 
 const logFilePath = 'C:\\Users\\stefa\\Documents\\projecten\\hass-ts-automation\\hass-driver.log'
 
@@ -61,10 +61,10 @@ export default class HassDriver extends DriverBase {
       if (msg.includes('result') && msg.includes('"success": false')) console.log(msg)
       this.processIncomingMessage(JSON.parse(msg))
     })
-    DriverBase.eventEmitter.on('command.light', data => this.changeLight(data))
+    DriverBase.eventEmitter.on('command.light', (data: any) => this.changeLight(data))
     return promise
   }
-  async stop() {}
+  async stop() { }
 
   entityFrom(nativeMessage: IncomingMessage): string | undefined {
     if (nativeMessage.type.startsWith('auth')) return undefined
