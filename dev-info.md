@@ -13,7 +13,7 @@ class MessageBase {
 }
 ```
 
-## Driver infrastructuur
+## Integration infrastructuur
 
 
 ## Libraries

@@ -3,7 +3,7 @@ import { resolve } from 'path'
 export default () => ({
   port: 3001,
   driverFolder: resolve(__dirname, '..', 'plugins', 'drivers'),
-  driverExtension: '.driver.js',
+  driverExtension: '.integration.js',
   configExtension: '.config.js',
   keepSensorHistory: 10,
   integrations: {
@@ -12,7 +12,8 @@ export default () => ({
       entities: ['entity-one', 'entity-two'],
     },
     hass: {
-      hassWsUrl: 'ws://192.168.0.3:8123/api/websocket',
+      baseUrl: process.env.HASS_BASE_URL,
+      authToken: process.env.HASS_AUTH_TOKEN,
     },
   },
   stateRepo: {

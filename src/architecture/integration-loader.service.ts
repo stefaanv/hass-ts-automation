@@ -1,32 +1,32 @@
 import { Injectable, Logger, LoggerService, NotImplementedException } from '@nestjs/common'
-import { DriverBase } from './driver.base'
-import { isLeft, isRight, left, right, tryit } from '@bruyland/utilities'
+import { IntegrationBase } from './integration.base'
+import { isLeft, isRight, left, mapValues, right, tryit } from '@bruyland/utilities'
 import { EventEmitter2 } from 'eventemitter2'
 import { ConfigService } from '@nestjs/config'
 import { red, white, yellow } from 'ansi-colors'
 import { readdirSync } from 'fs'
 import { resolve } from 'path'
-import { ILoadable, LoadableConstructorSchema, LoadableSchema } from './loadable'
+import { LoadableConstructorSchema, LoadableSchema } from './loadable'
 
 const tryImport = tryit(async (file: string) => import(file))
 
 @Injectable()
-export class DriverLoader {
-  private readonly _drivers: ILoadable[] = []
+export class IntegrationLoader {
+  private readonly _drivers: IntegrationBase[] = []
   private readonly _log: LoggerService
 
   constructor(
     private readonly _config: ConfigService,
     private readonly _eventEmitter: EventEmitter2,
   ) {
-    this._log = new Logger(DriverLoader.name)
-    DriverBase.eventEmitter = _eventEmitter
+    this._log = new Logger(IntegrationLoader.name)
+    IntegrationBase.eventEmitter = _eventEmitter
     setTimeout(() => this.loadDrivers(), 1000)
   }
 
   async loadDrivers() {
     const driverFolder = this._config.get('driverFolder', '')
-    const driverExtension = this._config.get('driverExtension', '.driver.js')
+    const driverExtension = this._config.get('driverExtension', '.integration.js')
     const configExtension = this._config.get('configExtension', '.config.js')
     const allFiles = readdirSync(driverFolder, { recursive: true, withFileTypes: false, encoding: 'utf-8' })
     const driverFiles = allFiles.filter(f => f.endsWith(driverExtension))
@@ -63,7 +63,7 @@ export class DriverLoader {
         }
 
         // try instantiating the driver
-        const driverInstance: DriverBase = new driverClass(filename, localConfig, this._config)
+        const driverInstance: IntegrationBase = new driverClass(filename, localConfig, this._config)
         const [error2] = tryit(LoadableSchema.parse)(driverInstance)
         if (error2) {
           this._log.error(`Driver ${filename} class has incorrect form - ${error2.message}}`)
@@ -87,5 +87,9 @@ export class DriverLoader {
         throw new NotImplementedException('driver-loader-service loadDrivers 2nd part else')
       }
     }
+  }
+
+  getAllDebugInfo() {
+    return this._drivers.map(driver => driver.debugInfo)
   }
 }

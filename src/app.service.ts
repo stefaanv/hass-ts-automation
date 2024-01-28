@@ -1,13 +1,15 @@
 import { Injectable, Logger, LoggerService } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { IntegrationLoader } from './architecture/integration-loader.service'
 @Injectable()
 export class AppService {
   private readonly _log: LoggerService
 
-  constructor(config: ConfigService) {
+  constructor(private readonly _loaderService: IntegrationLoader) {
     this._log = new Logger(AppService.name)
   }
-  getHello(): string {
-    return 'Hello World!'
+
+  debugInfo() {
+    return this._loaderService.getAllDebugInfo()
   }
 }

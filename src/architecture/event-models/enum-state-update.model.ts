@@ -1,6 +1,6 @@
-import { Message } from './message.model'
+import { StateUpdate } from './message.model'
 
-export abstract class EnumStateUpdate<T extends string> extends Message {
+export abstract class EnumStateUpdate<T extends string> extends StateUpdate {
   constructor(
     origin: string,
     entityName: string,
@@ -10,7 +10,7 @@ export abstract class EnumStateUpdate<T extends string> extends Message {
     super(origin, entityName, timestamp)
   }
 
-  override stateToString() {
+  override toString() {
     return this.state
   }
 }

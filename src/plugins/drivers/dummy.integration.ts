@@ -1,27 +1,24 @@
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { DriverBase } from '@src/architecture/driver.base'
+import { IntegrationBase } from '@src/architecture/integration.base'
 import { Entity } from '@src/architecture/entities/entity.model'
-import { white } from 'ansi-colors'
 
-export default class DummyDriver extends DriverBase {
+export default class DummyIntegration extends IntegrationBase {
   public name = 'Dummy'
   public version = '0.0.1'
   public id = 'dummy'
 
   constructor(
-    driverFileName: string, // first part of the filename of the driver
+    _driverFileName: string, // first part of the filename of the driver
     localConfig: any, // content of the config file with the same name as the driver file
     globalConfig: ConfigService,
   ) {
     super(localConfig, globalConfig)
-    this._log = new Logger(DummyDriver.name)
+    this._log = new Logger(DummyIntegration.name)
     const testConfig = this.getConfig('test')
     this.entities = this.getConfig<string[]>('entities', []).map(
       en => new Entity({ name: en, type: 'dummy' }),
     )
-
-    // this._logger.debug!(`test config = "${testConfig}"`)
   }
 
   override async start(): Promise<boolean> {
@@ -30,5 +27,9 @@ export default class DummyDriver extends DriverBase {
 
   override async stop() {
     super.reportStopped()
+  }
+
+  get debugInfo(): object {
+    return { info: 'no debug info from dummy driver' }
   }
 }

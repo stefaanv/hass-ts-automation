@@ -11,9 +11,9 @@ export class AppController {
     private readonly _eventEmitter: EventEmitter2,
   ) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello()
+  @Get('debug')
+  debugInfo() {
+    return this.appService.debugInfo()
   }
 
   // @Get('states')

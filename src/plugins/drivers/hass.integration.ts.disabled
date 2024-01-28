@@ -1,11 +1,9 @@
 import * as WebSocket from 'ws'
-import { EventInfo, IncomingMessage, OutgoingMessage } from './hass/hass-message.types.ts.disabled'
-import { DriverBase } from '@src/architecture/driver.base'
+import { EventInfo, IncomingMessage, OutgoingMessage } from './hass/hass-message.types.js'
+import { IntegrationBase } from '@src/architecture/integration.base.js'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
 import { utcToLocal } from '@src/utilities'
-import { IMessageContent, KnownContent } from '@src/architecture/event-models/message.model'
-import { ValueStateUpdate } from '@src/architecture/event-models/value-state-update.model'
 import { appendFile, readFile } from 'fs/promises'
 import {
   LightOnoffState,
@@ -13,57 +11,52 @@ import {
   OpenCloseStateUpdate,
   PresenceStateUpdate,
 } from '@src/architecture/event-models/enum-state-update.model'
-import { LightDimStateUpdate } from '@src/architecture/event-models/single-value-update.model'
 import { first } from '@bruyland/utilities'
 
 const logFilePath = 'C:\\Users\\stefa\\Documents\\projecten\\hass-ts-automation\\hass-driver.log'
 
-export default class HassDriver extends DriverBase {
+export default class HassIntegration extends IntegrationBase {
   public readonly name = 'Home Assistant'
   public readonly version = '0.0.1'
   public readonly id = 'hass'
+
   private cmdIdCounter = 1
   private ws: WebSocket
   private readonly hassWsUrl: string
   private readonly accessToken: string
-  private startPromise: (value: boolean) => void
   private writtenToLog: string[] = []
   private readonly sendAllMessages: boolean
 
-  constructor(filenameRoot: string, localConfig: any, globalConfig: ConfigService) {
-    super(filenameRoot, localConfig, globalConfig)
-    this._logger = new Logger(this.name)
-    this.hassWsUrl = this.getConfig('hassWsUrl', '')
-    this.accessToken = this.getConfig('accessToken', '')
-    this.accessToken = this.getConfig('accessToken', '')
+  constructor(_driverFileName: string, localConfig: any, globalConfig: ConfigService) {
+    // general setup
+    super(localConfig, globalConfig)
+    this._log = new Logger(this.name)
+
+    // get the configuration
+    this.hassWsUrl = this.getConfig('baseUrl', '')
+    this.accessToken = this.getConfig('authToken', '')
     this.debug = true
     this.sendAllMessages = this.getConfig('sendAllMessages', false)
-    readFile(logFilePath)
-      .then(buffer => {
-        const lines = buffer.toString().split('\r\n')
-        this.writtenToLog = lines.filter(l => l.length > 5).map(l => first(l.split(';')) ?? '')
-      })
-      .catch(error => {
-        if (error.code !== 'ENOENT') {
-          console.error(error)
-          debugger
-        }
-      })
   }
 
-  async start() {
-    this.logDebug(`Connecting to websocket ${this.hassWsUrl}`)
-    const promise = new Promise<boolean>(resolve => (this.startPromise = resolve))
-    this.ws = new WebSocket(this.hassWsUrl)
+  private setWsListeners() {
     this.ws.on('error', console.error)
     this.ws.on('message', (buf: Buffer) => {
       const msg = buf.toString()
       if (msg.includes('result') && msg.includes('"success": false')) console.log(msg)
       this.processIncomingMessage(JSON.parse(msg))
     })
-    DriverBase.eventEmitter.on('command.light', (data: any) => this.changeLight(data))
-    return promise
   }
+
+  async start() {
+    this._log.debug!(`Connecting to websocket ${this.hassWsUrl}`)
+    this.ws = new WebSocket(this.hassWsUrl)
+    this.setWsListeners()
+    // start listening to `light` commands
+    IntegrationBase.eventEmitter.on('command.light', (data: any) => this.changeLight(data))
+    return true
+  }
+
   async stop() {}
 
   entityFrom(nativeMessage: IncomingMessage): string | undefined {
