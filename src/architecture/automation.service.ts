@@ -1,7 +1,7 @@
 import { Injectable, Logger, LoggerService } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
-import { EventMessage, Message, StateUpdate } from './event-models/message.model'
+import { EventMessage, Message } from './messages/message.model'
 
 @Injectable()
 export class AutomationService {

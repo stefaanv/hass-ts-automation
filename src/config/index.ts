@@ -2,8 +2,8 @@ import { resolve } from 'path'
 
 export default () => ({
   port: 3001,
-  driverFolder: resolve(__dirname, '..', 'plugins', 'drivers'),
-  driverExtension: '.integration.js',
+  integrationsfolder: resolve(__dirname, '..', 'plugins', 'integrations'),
+  integrationExtension: '.integration.js',
   configExtension: '.config.js',
   keepSensorHistory: 10,
   integrations: {
@@ -11,9 +11,13 @@ export default () => ({
       test: 'my test config string',
       entities: ['entity-one', 'entity-two'],
     },
-    hass: {
+    'hass-lights': {
       baseUrl: process.env.HASS_BASE_URL,
       authToken: process.env.HASS_AUTH_TOKEN,
+      statePollingInterval: 2000,
+      lights: {
+        test: 'test',
+      },
     },
   },
   stateRepo: {

@@ -1,9 +1,9 @@
 import { Injectable, Logger, LoggerService, NotImplementedException } from '@nestjs/common'
 import { IntegrationBase } from './integration.base'
-import { isLeft, isRight, left, mapValues, right, tryit } from '@bruyland/utilities'
+import { isLeft, isRight, left, right, tryit } from '@bruyland/utilities'
 import { EventEmitter2 } from 'eventemitter2'
 import { ConfigService } from '@nestjs/config'
-import { red, white, yellow } from 'ansi-colors'
+import { red, white } from 'ansi-colors'
 import { readdirSync } from 'fs'
 import { resolve } from 'path'
 import { LoadableConstructorSchema, LoadableSchema } from './loadable'
@@ -12,7 +12,7 @@ const tryImport = tryit(async (file: string) => import(file))
 
 @Injectable()
 export class IntegrationLoader {
-  private readonly _drivers: IntegrationBase[] = []
+  private readonly _integrations: IntegrationBase[] = []
   private readonly _log: LoggerService
 
   constructor(
@@ -21,19 +21,23 @@ export class IntegrationLoader {
   ) {
     this._log = new Logger(IntegrationLoader.name)
     IntegrationBase.eventEmitter = _eventEmitter
-    setTimeout(() => this.loadDrivers(), 1000)
+    setTimeout(() => this.loadIntegrations(), 1000)
   }
 
-  async loadDrivers() {
-    const driverFolder = this._config.get('driverFolder', '')
-    const driverExtension = this._config.get('driverExtension', '.integration.js')
+  async loadIntegrations() {
+    const integrationsfolder = this._config.get('integrationsfolder', '')
+    const integrationExtension = this._config.get('integrationExtension', '.integration.js')
     const configExtension = this._config.get('configExtension', '.config.js')
-    const allFiles = readdirSync(driverFolder, { recursive: true, withFileTypes: false, encoding: 'utf-8' })
-    const driverFiles = allFiles.filter(f => f.endsWith(driverExtension))
+    const allFiles = readdirSync(integrationsfolder, {
+      recursive: true,
+      withFileTypes: false,
+      encoding: 'utf-8',
+    })
+    const driverFiles = allFiles.filter(f => f.endsWith(integrationExtension))
     const configFiles = allFiles.filter(f => f.endsWith(configExtension))
 
     this._log.log(`Start loading ${driverFiles.length} drivers`)
-    const stripRegex = new RegExp(`\\${driverExtension}$`)
+    const stripRegex = new RegExp(`\\${integrationExtension}$`)
     // for every driver
     for (const filename of driverFiles) {
       // deduce the name of the config file (e.g. myDriver.driver.js -> myDriver.config.js)
@@ -41,7 +45,7 @@ export class IntegrationLoader {
       let localConfig = {} // localConfig default in case of no config file or erors
       // try import the local config file
       if (configFiles.includes(configFilename)) {
-        const configFullPath = resolve(driverFolder, configFilename)
+        const configFullPath = resolve(integrationsfolder, configFilename)
         const either = await tryImport(configFullPath)
         if (isLeft(either)) {
           this._log.warn(`Unable to load local config file ${configFilename} - ${left(either).message}}`)
@@ -50,7 +54,7 @@ export class IntegrationLoader {
         }
       }
 
-      const driverFullPath = resolve(driverFolder, filename)
+      const driverFullPath = resolve(integrationsfolder, filename)
       const either = await tryImport(driverFullPath)
       if (isRight(either)) {
         // load the driver
@@ -77,19 +81,19 @@ export class IntegrationLoader {
         // try to start the driver
         const started = await driverInstance.start() // TODO handle possible errors
         if (started) {
-          this._drivers.push(driverInstance)
+          this._integrations.push(driverInstance)
           // this._log.log(`${driverInstance.name} ` + yellow('started'))
         } else {
           this._log.error(red(`Unable to start ${driverInstance.name} driver`))
         }
       } else {
         //TODO
-        throw new NotImplementedException('driver-loader-service loadDrivers 2nd part else')
+        throw new NotImplementedException('driver-loader-service loadIntegrations 2nd part else')
       }
     }
   }
 
   getAllDebugInfo() {
-    return this._drivers.map(driver => driver.debugInfo)
+    return this._integrations.map(driver => driver.debugInfo)
   }
 }

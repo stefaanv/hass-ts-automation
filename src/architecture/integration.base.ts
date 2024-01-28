@@ -4,16 +4,16 @@ import { Loadable } from './loadable'
 import { Entity } from './entities/entity.model'
 import { Logger } from '@nestjs/common'
 import { white } from 'ansi-colors'
-import { StateUpdate } from './event-models/message.model'
+import { StateUpdate } from './messages/message.model'
 
-const GOBAL_DRIVERS_CONFIG_PREFIX = 'integrations'
+const GOBAL_INTEGRATIONS_CONFIG_PREFIX = 'integrations'
 
 export abstract class IntegrationBase extends Loadable {
   protected _log: Logger
   static eventEmitter: EventEmitter2
   public entities: Entity[] = []
   protected get globalConfigKeyChain(): string[] {
-    return [GOBAL_DRIVERS_CONFIG_PREFIX, this.id]
+    return [GOBAL_INTEGRATIONS_CONFIG_PREFIX, this.id]
   }
   abstract get debugInfo(): object
 

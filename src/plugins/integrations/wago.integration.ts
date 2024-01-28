@@ -1,12 +1,12 @@
 import * as udp from 'dgram'
 import { differenceInMilliseconds } from 'date-fns'
-import { IntegrationBase as IntegrationBase } from '@src/architecture/integration.base'
+import { IntegrationBase } from '@src/architecture/integration.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
 import { PlcClusterConfig, PlcConfig } from './wago/plc.config.model'
 import { Entity } from '@src/architecture/entities/entity.model'
-import { ButtonReleased } from '@src/architecture/event-models/button-release.model'
-import { ButtonPressed } from '@src/architecture/event-models/button-press.model'
+import { ButtonReleased } from '@src/architecture/messages/events/button-release.model'
+import { ButtonPressed } from '@src/architecture/messages/events/button-press.model'
 
 const WAGO_PORT = 1202
 export interface WagoIntegrationDebugInfo {
@@ -54,6 +54,14 @@ export default class WagoIntegration extends IntegrationBase {
     this._server = udp.createSocket({ type: 'udp4' })
     this._server.bind(WAGO_PORT)
     this.setUdpListeners()
+  }
+
+  override async start(): Promise<boolean> {
+    return super.reportStarted()
+  }
+
+  override async stop() {
+    super.reportStopped()
   }
 
   private setUdpListeners() {
@@ -107,13 +115,5 @@ export default class WagoIntegration extends IntegrationBase {
         this._debugInfo.lastStateChanges[plc.name + '-' + switchName] = nowStr
       }
     }
-  }
-
-  override async start(): Promise<boolean> {
-    return super.reportStarted()
-  }
-
-  override async stop() {
-    super.reportStopped()
   }
 }

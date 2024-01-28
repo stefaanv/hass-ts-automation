@@ -1,4 +1,4 @@
-import { StateUpdate } from './message.model'
+import { StateUpdate } from '../message.model'
 
 export abstract class EnumStateUpdate<T extends string> extends StateUpdate {
   constructor(

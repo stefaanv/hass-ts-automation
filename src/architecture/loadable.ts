@@ -27,7 +27,7 @@ export type ILoadable = z.infer<typeof LoadableSchema>
 //TODO: implementatie proberen op te halen met zod-class
 // https://www.npmjs.com/package/zod-class
 
-/** Base class for both drivers/integrations and automation scripts */
+/** Base class for both integrations and automation scripts */
 export abstract class Loadable implements ILoadable {
   public abstract name: string
   public abstract version: string
