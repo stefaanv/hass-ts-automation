@@ -1,6 +1,6 @@
 import * as udp from 'dgram'
 import { differenceInMilliseconds } from 'date-fns'
-import { IntegrationBase } from '@architecture/integration.base'
+import { IntegrationBase } from '@src/architecture/loadable-base-classes/integration.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
 import { PlcClusterConfig, PlcConfig } from './wago/plc.config.model'

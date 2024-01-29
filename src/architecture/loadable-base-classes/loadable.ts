@@ -35,11 +35,12 @@ export abstract class Loadable implements ILoadable {
   public abstract name: string
   public abstract version: string
   public abstract id: string
+  protected abstract get globalConfigKeyChain(): string[]
   abstract start(): Promise<boolean>
   abstract stop(): Promise<void>
-  protected abstract get globalConfigKeyChain(): string[]
 
   constructor(
+    protected _eventEmitter: EventEmitter2,
     private readonly _localConfig: any, // content of the config file with the same name as the driver file
     private readonly _globalConfig: ConfigService,
   ) {}

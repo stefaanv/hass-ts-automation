@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { IntegrationBase } from '@architecture/integration.base'
+import { IntegrationBase } from '@src/architecture/loadable-base-classes/integration.base'
 import { Entity } from '@architecture/entities/entity.model'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 

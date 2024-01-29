@@ -4,8 +4,8 @@ import { AppService } from './app.service'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ConfigModule } from '@nestjs/config'
 import configuration from '@src/config'
-import { AutomationLoader } from './architecture/automation-loader.service'
-import { IntegrationLoader } from './architecture/integration-loader.service'
+import { AutomationLoader } from './architecture/loaders/automation-loader.service'
+import { IntegrationLoader } from './architecture/loaders/integration-loader.service'
 // import { StateRepoService } from './architecture/state-repo.service.ts.disabled'
 
 //TODO standaard events in ander kleur afdrukken !

@@ -1,5 +1,5 @@
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
-import { AutomationBase } from '@architecture/automation.base'
+import { AutomationBase } from '@src/architecture/loadable-base-classes/automation.base'
 import { Message } from '@architecture/messages/message.model'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
