@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { IntegrationBase } from '@src/architecture/integration.base'
-import { Entity } from '@src/architecture/entities/entity.model'
+import { IntegrationBase } from '@architecture/integration.base'
+import { Entity } from '@architecture/entities/entity.model'
 
 export default class DummyIntegration extends IntegrationBase {
   public name = 'Dummy'

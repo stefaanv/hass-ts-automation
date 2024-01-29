@@ -1,12 +1,12 @@
 import * as udp from 'dgram'
 import { differenceInMilliseconds } from 'date-fns'
-import { IntegrationBase } from '@src/architecture/integration.base'
+import { IntegrationBase } from '@architecture/integration.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
 import { PlcClusterConfig, PlcConfig } from './wago/plc.config.model'
-import { Entity } from '@src/architecture/entities/entity.model'
-import { ButtonReleased } from '@src/architecture/messages/events/button-release.model'
-import { ButtonPressed } from '@src/architecture/messages/events/button-press.model'
+import { Entity } from '@architecture/entities/entity.model'
+import { ButtonReleased } from '@architecture/messages/events/button-release.model'
+import { ButtonPressed } from '@architecture/messages/events/button-press.model'
 
 const WAGO_PORT = 1202
 export interface WagoIntegrationDebugInfo {

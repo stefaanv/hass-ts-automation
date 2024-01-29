@@ -16,7 +16,7 @@ export default () => ({
       authToken: process.env.HASS_AUTH_TOKEN,
       statePollingInterval: 2000,
       lights: {
-        test: 'test',
+        test: 'slaapkamer_4',
       },
     },
   },

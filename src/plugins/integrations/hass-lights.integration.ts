@@ -1,16 +1,8 @@
-import { IntegrationBase } from '@src/architecture/integration.base.js'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
 import axios, { Axios } from 'axios'
 import { keys, tryit } from 'radash'
-
-const logFilePath = 'C:\\Users\\stefa\\Documents\\projecten\\hass-ts-automation\\hass-driver.log'
-
-interface LightState {
-  on: boolean
-  brightness: number
-  reachable: boolean
-}
+import { IntegrationBase } from '@architecture/integration.base'
 
 export default class HassLightsIntegration extends IntegrationBase {
   public readonly name = 'Home Assistant Lights'
@@ -32,6 +24,7 @@ export default class HassLightsIntegration extends IntegrationBase {
     this._lights = this.getConfig<Record<string, string>>('lights', {})
     this._statePollingInterval = this.getConfig('statePollingInterval', 5000)
     const baseURL = this.getConfig('baseUrl', '')
+    console.log(baseURL)
     const authToken = this.getConfig('authToken', '')
     // create Axios instance from config
     this._axios = axios.create({
@@ -106,6 +99,6 @@ export default class HassLightsIntegration extends IntegrationBase {
   }
 
   get debugInfo(): object {
-    return {}
+    return this._states
   }
 }
