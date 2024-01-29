@@ -7,6 +7,8 @@ import { PlcClusterConfig, PlcConfig } from './wago/plc.config.model'
 import { Entity } from '@architecture/entities/entity.model'
 import { ButtonReleased } from '@architecture/messages/events/button-release.model'
 import { ButtonPressed } from '@architecture/messages/events/button-press.model'
+import { EventEmitter2 } from '@nestjs/event-emitter'
+import { ensureError } from '@bruyland/utilities'
 
 const WAGO_PORT = 1202
 export interface WagoIntegrationDebugInfo {
@@ -27,18 +29,18 @@ export default class WagoIntegration extends IntegrationBase {
   private _controller = new AbortController()
   private _states: Record<string, boolean> = {}
   private _buttonPressStarts: Record<string, Date> = {}
-  private _config: PlcClusterConfig
   private _debugInfo: WagoIntegrationDebugInfo
   private _plcs: PlcConfig[]
   private _startAddress: number
 
   constructor(
-    _driverFileName: string, // first part of the filename of the driver
+    _integrationFileName: string, // first part of the filename of the driver,
+    _eventEmitter: EventEmitter2,
     localConfig: any, // content of the config file with the same name as the driver file
     globalConfig: ConfigService,
   ) {
     // general setup
-    super(localConfig, globalConfig)
+    super(_eventEmitter, localConfig, globalConfig)
     this._log = new Logger(WagoIntegration.name)
     this._debugInfo = { lastMsgReceivedFrom: {}, lastStateChanges: {} } as WagoIntegrationDebugInfo
 
@@ -50,25 +52,30 @@ export default class WagoIntegration extends IntegrationBase {
     this._plcs = config.plcs
     this._startAddress = config.addressStart
 
-    // set up the UDP listener
     this._server = udp.createSocket({ type: 'udp4' })
-    this._server.bind(WAGO_PORT)
-    this.setUdpListeners()
   }
 
   override async start(): Promise<boolean> {
-    return super.reportStarted()
+    // set up the UDP listener
+    try {
+      this._server.bind(WAGO_PORT)
+      this.setUdpListeners()
+      return true
+    } catch (error) {
+      this._log.error(ensureError(error).message)
+      return false
+    }
   }
 
   override async stop() {
-    super.reportStopped()
+    this._server.close()
   }
 
   private setUdpListeners() {
     this._server.on('listening', () => {
       const address = this._server.address()
       const port = address.port
-      console.log('WAGO Server is listening at port ' + port)
+      // console.log('WAGO Server is listening at port ' + port)
     })
 
     this._server.on('message', (buffer, msg) => {

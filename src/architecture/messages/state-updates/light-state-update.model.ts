@@ -1,22 +1,32 @@
+import { white } from 'ansi-colors'
 import { StateUpdate } from '../message.model'
 
-interface LightState {
+export class LightState {
   on: boolean
-  brightness: number
+  brightness?: number
   reachable: boolean
-}
 
-export class StateUpdate extends StateUpdate {
-  constructor(
-    origin: string,
-    entityName: string,
-    public state: LightState,
-    timestamp = new Date(),
-  ) {
-    super(origin, entityName, timestamp)
+  constructor(content?: Partial<LightState>) {
+    this.reachable = content?.reachable ?? false
+    this.on = content?.on ?? false
+    this.brightness = content?.brightness ?? 0
   }
 
-  override toString() {
-    return `Light "${this.entityName}" changed to `
+  isEqual(other: LightState) {
+    if (!other) return false
+    return this.reachable == other.reachable && this.on == other.on && this.reachable == other.reachable
+  }
+
+  toString() {
+    const result =
+      (!this.reachable ? 'unreachable' : this.on ? 'ON' : 'OFF') +
+      (this.reachable && this.on ? ` (bri ${this.brightness})` : '')
+    return result
+  }
+}
+
+export class LightStateUpdate extends StateUpdate<LightState> {
+  toString() {
+    return `Light "${this.entity}" changed to ${white(this.state.toString())}`
   }
 }

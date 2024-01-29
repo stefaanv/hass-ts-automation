@@ -24,7 +24,7 @@ export class StateRepoService {
   @OnEvent('driver.*') //TODO: alle driver events
   receiveEvent(message: Message) {
     if (message.content instanceof StateUpdate) {
-      const entity = message.entityName
+      const entity = message.entity
       if (!this._history[entity]) this._history[entity] = []
       this._history[entity].unshift(message.content)
       this.clearSingle(entity)

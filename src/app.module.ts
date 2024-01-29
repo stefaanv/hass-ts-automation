@@ -4,7 +4,7 @@ import { AppService } from './app.service'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ConfigModule } from '@nestjs/config'
 import configuration from '@src/config'
-import { AutomationService } from './architecture/automation.service'
+import { AutomationLoader } from './architecture/automation-loader.service'
 import { IntegrationLoader } from './architecture/integration-loader.service'
 // import { StateRepoService } from './architecture/state-repo.service.ts.disabled'
 
@@ -19,6 +19,6 @@ import { IntegrationLoader } from './architecture/integration-loader.service'
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, AutomationService, IntegrationLoader /*StateRepoService*/],
+  providers: [AppService, AutomationLoader, IntegrationLoader /*StateRepoService*/],
 })
 export class AppModule {}

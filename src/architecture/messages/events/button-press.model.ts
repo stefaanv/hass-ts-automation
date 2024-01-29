@@ -1,11 +1,11 @@
 import { EventMessage, StateUpdate } from '../message.model'
 
 export class ButtonPressed extends EventMessage {
-  constructor(origin: string, entityName: string, timestamp = new Date()) {
-    super(origin, entityName, timestamp)
+  constructor(origin: string, entity: string, timestamp = new Date()) {
+    super(origin, entity, timestamp)
   }
 
   toString() {
-    return `Button "${this.entityName}" pressed`
+    return `Button "${this.entity}" pressed`
   }
 }

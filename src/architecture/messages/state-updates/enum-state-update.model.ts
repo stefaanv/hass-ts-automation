@@ -3,11 +3,11 @@ import { StateUpdate } from '../message.model'
 export abstract class EnumStateUpdate<T extends string> extends StateUpdate {
   constructor(
     origin: string,
-    entityName: string,
+    entity: string,
     public state: T,
     timestamp = new Date(),
   ) {
-    super(origin, entityName, timestamp)
+    super(origin, entity, timestamp)
   }
 
   override toString() {

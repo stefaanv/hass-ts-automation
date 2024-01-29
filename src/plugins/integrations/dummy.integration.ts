@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { IntegrationBase } from '@architecture/integration.base'
 import { Entity } from '@architecture/entities/entity.model'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 
 export default class DummyIntegration extends IntegrationBase {
   public name = 'Dummy'
@@ -9,11 +10,12 @@ export default class DummyIntegration extends IntegrationBase {
   public id = 'dummy'
 
   constructor(
-    _driverFileName: string, // first part of the filename of the driver
+    _integrationFileName: string, // first part of the filename of the driver
+    eventEmitter: EventEmitter2,
     localConfig: any, // content of the config file with the same name as the driver file
     globalConfig: ConfigService,
   ) {
-    super(localConfig, globalConfig)
+    super(eventEmitter, localConfig, globalConfig)
     this._log = new Logger(DummyIntegration.name)
     const testConfig = this.getConfig('test')
     this.entities = this.getConfig<string[]>('entities', []).map(
@@ -22,12 +24,10 @@ export default class DummyIntegration extends IntegrationBase {
   }
 
   override async start(): Promise<boolean> {
-    return super.reportStarted()
+    return true
   }
 
-  override async stop() {
-    super.reportStopped()
-  }
+  override async stop() {}
 
   get debugInfo(): object {
     return { info: 'no debug info from dummy driver' }

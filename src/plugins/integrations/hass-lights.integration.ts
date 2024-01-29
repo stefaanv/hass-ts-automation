@@ -3,6 +3,9 @@ import { Logger } from '@nestjs/common'
 import axios, { Axios } from 'axios'
 import { keys, tryit } from 'radash'
 import { IntegrationBase } from '@architecture/integration.base'
+import { LightState, LightStateUpdate } from '@architecture/messages/state-updates/light-state-update.model'
+import { LightConfig } from './hass-lights/light.config'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 
 export default class HassLightsIntegration extends IntegrationBase {
   public readonly name = 'Home Assistant Lights'
@@ -10,21 +13,25 @@ export default class HassLightsIntegration extends IntegrationBase {
   public readonly id = 'hass-lights'
 
   private readonly _axios: Axios
-  private _lights: Record<string, string>
+  private _lights: Record<string, LightConfig>
   private _states: Record<string, LightState> = {}
   private _statePollingInterval: number
-  private _pollingJob: NodeJS.Timeout
+  private _pollingJob?: NodeJS.Timeout
 
-  constructor(_driverFileName: string, localConfig: any, globalConfig: ConfigService) {
+  constructor(
+    _integrationFileName: string,
+    eventEmitter: EventEmitter2,
+    localConfig: any,
+    globalConfig: ConfigService,
+  ) {
     // general setup
-    super(localConfig, globalConfig)
+    super(eventEmitter, localConfig, globalConfig)
     this._log = new Logger(this.name)
 
     //get config
-    this._lights = this.getConfig<Record<string, string>>('lights', {})
+    this._lights = this.getConfig<Record<string, LightConfig>>('lights', {})
     this._statePollingInterval = this.getConfig('statePollingInterval', 5000)
     const baseURL = this.getConfig('baseUrl', '')
-    console.log(baseURL)
     const authToken = this.getConfig('authToken', '')
     // create Axios instance from config
     this._axios = axios.create({
@@ -51,50 +58,67 @@ export default class HassLightsIntegration extends IntegrationBase {
   }
 
   private setEmptyStates() {
-    keys(this._lights).forEach(k => (this._states[k] = { on: false, brightness: 0, reachable: false }))
+    keys(this._lights).forEach(k => (this._states[k] = new LightState()))
   }
 
-  public async switch(lightName: string, newState: boolean): Promise<void> {
-    if (!keys(this._lights).includes(lightName)) {
-      this._log.error(`Light ${lightName} is not known`)
+  public async switch(entityName: string, newState: boolean | undefined): Promise<void> {
+    if (!newState || !keys(this._lights).includes(entityName)) {
+      this._log.warn(`Light ${entityName} is not known, no action taken`)
       return
     }
-    const oldState = this._states[lightName].on
-    if (oldState === newState) return
-    const data = { entity_id: `light.${this._lights[lightName]}` }
+    const oldState = this._states[entityName]
+    if (!oldState.reachable) {
+      this._log.warn(`Light ${entityName} is not reachable, no action taken`)
+      return
+    }
+    if (oldState.on === newState) return
+
+    const hassEntityName = this._lights[entityName].hassEntityName
+    const data = { entity_id: `light.${hassEntityName}` }
     const url = `services/light/turn_${newState ? 'on' : 'off'}`
     const [error, result] = await tryit(this._axios.post)(url, data)
     if (error) {
-      this._log.error(error)
+      this._log.error(error.message)
       return
     }
-    this._log.verbose(`switch - state of ${lightName} changed to ${JSON.stringify(newState) ? 'on' : 'off'}`)
-    this._states[lightName].on = newState
+    const changedState = new LightState(oldState)
+    changedState.on = newState
+    this.reportStateChange(entityName, changedState)
   }
 
-  public async toggle(lightName: string) {
-    if (!keys(this._lights).includes(lightName)) {
-      console.error(`Light ${lightName} is not known`)
-      return
-    }
-    const oldState = this._states[lightName].on
-    await this.switch(lightName, !oldState)
+  public async toggle(entityName: string) {
+    await this.switch(entityName, !this._states[entityName]?.on)
   }
 
   public async getLightStates(): Promise<void> {
-    for await (const key of keys(this._lights)) {
-      const [error, result] = await tryit(this._axios.get)(`states/light.${this._lights[key]}`)
+    for await (const key of Object.keys(this._lights)) {
+      const lightConfig = this._lights[key]
+      const [error, result] = await tryit(this._axios.get)(`states/light.${lightConfig.hassEntityName}`)
       if (error) {
         this._log.error(error)
       } else {
-        const newState = result?.data?.state === 'on'
-        const oldState = this._states[key].on
-        if (newState !== oldState) {
-          // light state changed !
-          this._log.verbose(`getLightStates - state of ${key} changed to ${newState ? 'on' : 'off'}`)
-          this._states[key].on = newState
+        const hassLightStateObject = result?.data
+        if (hassLightStateObject) {
+          const oldState = this._states[key]
+          const newState = new LightState(oldState)
+          if (hassLightStateObject.state != 'reachable') newState.reachable = true
+          if (['on', 'off'].includes(hassLightStateObject.state))
+            newState.on = hassLightStateObject.state === 'on'
+          if (hassLightStateObject.state == 'on')
+            newState.brightness = hassLightStateObject.attributes?.brightness
+          this.reportStateChange(key, newState)
         }
       }
+    }
+  }
+
+  reportStateChange(key: string, newState: LightState) {
+    const oldState = this._states[key]
+    if (!newState.isEqual(oldState)) {
+      // light state changed !
+      this._log.verbose(`state of ${key} changed to ${newState.toString()}`)
+      this._states[key] = newState
+      this.sendMessage(new LightStateUpdate(this.id, key, newState))
     }
   }
 

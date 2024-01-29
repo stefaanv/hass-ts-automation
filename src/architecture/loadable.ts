@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { ConfigService } from '@nestjs/config'
 import { Logger, LoggerService } from '@nestjs/common'
 import { get } from '@bruyland/utilities'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 
 export const LoadableSchema = z.object({
   name: z.string(),
@@ -15,6 +16,8 @@ export const LoadableConstructorSchema = z
   .args(
     /** filename root */
     z.string(),
+    /** eventEmitter */
+    z.instanceof(EventEmitter2),
     /** driver-specific configuration */
     z.any(),
     /** Global configuration */

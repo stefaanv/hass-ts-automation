@@ -4,6 +4,8 @@ export default () => ({
   port: 3001,
   integrationsfolder: resolve(__dirname, '..', 'plugins', 'integrations'),
   integrationExtension: '.integration.js',
+  automationsfolder: resolve(__dirname, '..', 'plugins', 'automations'),
+  automationExtension: '.automation.js',
   configExtension: '.config.js',
   keepSensorHistory: 10,
   integrations: {
@@ -16,7 +18,7 @@ export default () => ({
       authToken: process.env.HASS_AUTH_TOKEN,
       statePollingInterval: 2000,
       lights: {
-        test: 'slaapkamer_4',
+        test: { hassEntityName: 'slaapkamer_4', maxBrightness: 255 },
       },
     },
   },
