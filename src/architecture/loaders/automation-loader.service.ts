@@ -1,12 +1,8 @@
-import { isLeft, isRight, left, right, tryit } from '@bruyland/utilities'
-import { Injectable, Logger, LoggerService, NotImplementedException } from '@nestjs/common'
+import { tryit } from '@bruyland/utilities'
+import { Injectable, Logger, LoggerService } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { readdirSync } from 'fs'
-import { resolve } from 'path'
-import { LoadableConstructorSchema, LoadableSchema } from '../loadable-base-classes/loadable'
 import { AutomationBase } from '../loadable-base-classes/automation.base'
-import { red, white } from 'ansi-colors'
 import { load } from './loader-base'
 
 const tryImport = tryit(async (file: string) => import(file))
