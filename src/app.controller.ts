@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common'
 import { AppService } from './app.service'
-// import { StateRepoService } from './architecture/state-repo.service.ts.disabled'
+// import { StateRepoService } from './infrastructure/state-repo.service.ts.disabled'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 
 @Controller()

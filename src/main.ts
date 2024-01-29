@@ -2,8 +2,8 @@ import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { ConfigService } from '@nestjs/config'
 import { ConsoleLogger, Logger } from '@nestjs/common'
-import { AutomationLoader } from './architecture/loaders/automation-loader.service'
-import { IntegrationLoader } from './architecture/loaders/integration-loader.service'
+import { AutomationLoader } from './infrastructure/loaders/automation-loader.service'
+import { IntegrationLoader } from './infrastructure/loaders/integration-loader.service'
 
 /* TODO
 - starten/stoppen van automatisaties

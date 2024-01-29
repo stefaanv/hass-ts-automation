@@ -42,7 +42,7 @@ export class IntegrationLoader {
       this._folder,
       this._extension,
       this._configExtension,
-      'automation',
+      'integration',
       this._config,
       this._eventEmitter,
       this._log,

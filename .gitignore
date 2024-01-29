@@ -3,6 +3,7 @@
 .env
 db/sqlite.db
 client/*
+/data
 
 # IDE - VSCode
 .vscode/*

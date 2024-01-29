@@ -1,6 +1,6 @@
 import { Injectable, Logger, LoggerService } from '@nestjs/common'
-import { IntegrationLoader } from './architecture/loaders/integration-loader.service'
-import { AutomationLoader } from './architecture/loaders/automation-loader.service'
+import { IntegrationLoader } from './infrastructure/loaders/integration-loader.service'
+import { AutomationLoader } from './infrastructure/loaders/automation-loader.service'
 
 @Injectable()
 export class AppService {

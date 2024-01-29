@@ -10,6 +10,7 @@ export default {
       cobId: 42071,
       switches: {
         0: 'sw-bureau-deur-B1',
+        1: 'sw-dummy',
       },
     } as PlcConfig,
     // {

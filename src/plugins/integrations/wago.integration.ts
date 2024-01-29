@@ -1,12 +1,12 @@
 import * as udp from 'dgram'
 import { differenceInMilliseconds } from 'date-fns'
-import { IntegrationBase } from '@src/architecture/loadable-base-classes/integration.base'
+import { IntegrationBase } from '@src/infrastructure/loadable-base-classes/integration.base'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
 import { PlcClusterConfig, PlcConfig } from './wago/plc.config.model'
-import { Entity } from '@architecture/entities/entity.model'
-import { ButtonReleased } from '@architecture/messages/events/button-release.model'
-import { ButtonPressed } from '@architecture/messages/events/button-press.model'
+import { Entity } from '@infrastructure/entities/entity.model'
+import { ButtonReleased } from '@infrastructure/messages/events/button-release.model'
+import { ButtonPressed } from '@infrastructure/messages/events/button-press.model'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ensureError } from '@bruyland/utilities'
 
@@ -49,6 +49,10 @@ export default class WagoIntegration extends IntegrationBase {
     this.entities = config.plcs.flatMap(plc =>
       Object.entries(plc.switches).map(([k, v]) => new Entity({ name: v, type: 'button' })),
     )
+    this._states = Object.fromEntries(
+      config.plcs.flatMap(plc => Object.values(plc.switches)).map(name => [name, false]),
+    )
+
     this._plcs = config.plcs
     this._startAddress = config.addressStart
 
@@ -94,7 +98,6 @@ export default class WagoIntegration extends IntegrationBase {
   }
 
   diff(buffer: Buffer) {
-    // console.log(buffer)
     const now = new Date()
     const nowStr = now.toLocaleString()
     const cobId = buffer[9] * 256 + buffer[8]

@@ -1,0 +1,23 @@
+{
+    "_id": "77ee8915-8d78-42a5-9664-cd0d00d3417d",
+    "colName": "General",
+    "created": "2024-01-29T18:08:06.395Z",
+    "sortNum": 10000,
+    "folders": [],
+    "requests": [
+        {
+            "_id": "a78bc003-03c4-46d7-8dba-707a8a05decb",
+            "colId": "77ee8915-8d78-42a5-9664-cd0d00d3417d",
+            "containerId": "",
+            "name": "get debug info",
+            "url": "{{baseUrl}}/debug",
+            "method": "GET",
+            "sortNum": 10000,
+            "created": "2024-01-29T18:08:17.886Z",
+            "modified": "2024-01-29T18:08:28.056Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        }
+    ]
+}
