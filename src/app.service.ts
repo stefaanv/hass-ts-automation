@@ -14,6 +14,9 @@ export class AppService {
   }
 
   debugInfo() {
-    return this._integrations.getAllDebugInfo()
+    return {
+      integrations: this._integrations.getAllDebugInfo(),
+      automations: this._automations.getAllDebugInfo(),
+    }
   }
 }

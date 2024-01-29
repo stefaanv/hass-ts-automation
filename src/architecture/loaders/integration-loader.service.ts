@@ -4,8 +4,7 @@ import { tryit } from '@bruyland/utilities'
 import { EventEmitter2 } from 'eventemitter2'
 import { ConfigService } from '@nestjs/config'
 import { load } from './loader-base'
-
-const tryImport = tryit(async (file: string) => import(file))
+import { objectify } from 'radash'
 
 @Injectable()
 export class IntegrationLoader {
@@ -26,7 +25,14 @@ export class IntegrationLoader {
   }
 
   getAllDebugInfo() {
-    return this._integrations.map(integration => integration.debugInfo)
+    return objectify(
+      this._integrations,
+      value => value.id,
+      value => ({
+        debug: value.debug,
+        debugInfo: value.debugInfo,
+      }),
+    )
   }
 
   //TODO mogelijk om deze dynamisch te laten loaden in Nestjs !

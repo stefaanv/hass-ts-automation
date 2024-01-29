@@ -5,8 +5,6 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { AutomationBase } from '../loadable-base-classes/automation.base'
 import { load } from './loader-base'
 
-const tryImport = tryit(async (file: string) => import(file))
-
 @Injectable()
 export class AutomationLoader {
   private readonly _log: LoggerService
@@ -23,6 +21,10 @@ export class AutomationLoader {
     this._folder = this._config.get('automationsfolder', '')
     this._extension = this._config.get('automationExtension', '.automation.js')
     this._configExtension = this._config.get('configExtension', '.config.js')
+  }
+
+  getAllDebugInfo() {
+    return {}
   }
 
   //TODO mogelijk om deze dynamisch te laten loaden in Nestjs !

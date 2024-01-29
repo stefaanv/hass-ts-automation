@@ -71,7 +71,7 @@ export default class HassLightsIntegration extends IntegrationBase {
   }
 
   private setEmptyStates() {
-    keys(this._lights).forEach(k => (this._states[k] = new LightState()))
+    Object.keys(this._lights).forEach(k => (this._states[k] = new LightState()))
   }
 
   public async switch(entityName: string, newState: boolean): Promise<void> {
