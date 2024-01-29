@@ -12,7 +12,4 @@ export abstract class IntegrationBase extends Loadable {
     return [GOBAL_INTEGRATIONS_CONFIG_PREFIX, this.id]
   }
   abstract get debugInfo(): object
-  sendMessage(message: Message) {
-    this._eventEmitter.emit(message.entity, message)
-  }
 }

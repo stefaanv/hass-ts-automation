@@ -1,5 +1,5 @@
 import { isLeft, isRight, left, right, tryit } from '@bruyland/utilities'
-import { Logger, LoggerService, NotImplementedException } from '@nestjs/common'
+import { LoggerService, NotImplementedException } from '@nestjs/common'
 import { readdirSync } from 'fs'
 import { resolve } from 'path'
 import {
@@ -10,7 +10,7 @@ import {
 } from '../loadable-base-classes/loadable'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ConfigService } from '@nestjs/config'
-import { red, white } from 'ansi-colors'
+import { green, red, white, yellow } from 'ansi-colors'
 
 const tryImport = tryit(async (file: string) => import(file))
 
@@ -55,7 +55,7 @@ export async function load(
       const [error1] = tryit(LoadableConstructorSchema.parse)(_class)
       if (error1) {
         log.error(`Driver ${filename} constructor is incorrect - ${error1.message}}`)
-        return
+        continue
       }
 
       // try instantiating the automation
@@ -64,16 +64,16 @@ export async function load(
       if (error2) {
         log.error(`Automation ${filename} class has incorrect form - ${error2.message}}`)
         console.error(error2)
-        return
+        continue
       }
 
-      log.log(`${type} ${white(instance.name)} v${instance.version} loaded`)
+      log.log(`${instance.name} ${type} loaded (v${instance.version})`)
 
       // try to start the automation
       const started = await instance.start() // TODO handle possible errors
       if (started) {
         result.push(instance)
-        log.log(`${white(instance.name)} ` + 'started')
+        log.log(`${white(instance.name)} ${yellow(type)} ${green('started')}`)
       } else {
         log.error(red(`Unable to start ${instance.name} automation`))
       }

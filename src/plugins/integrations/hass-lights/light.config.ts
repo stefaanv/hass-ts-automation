@@ -1,4 +1,4 @@
 export interface LightConfig {
-  hassEntityName: 'slaapkamer_4'
-  maxBrightness: 255
+  hassEntityName: string
+  maxBrightness: number
 }

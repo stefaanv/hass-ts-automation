@@ -9,29 +9,38 @@ const tryImport = tryit(async (file: string) => import(file))
 
 @Injectable()
 export class IntegrationLoader {
-  private readonly _integrations: IntegrationBase[] = []
+  private _integrations: IntegrationBase[] = []
   private readonly _log: LoggerService
+  private readonly _folder: string
+  private readonly _extension: string
+  private readonly _configExtension: string
 
   constructor(
     private readonly _config: ConfigService,
     private readonly _eventEmitter: EventEmitter2,
   ) {
     this._log = new Logger(IntegrationLoader.name)
-    const folder = this._config.get('integrationsfolder', '')
-    const extension = this._config.get('integrationExtension', '.integration.js')
-    const configExtension = this._config.get('configExtension', '.config.js')
-
-    //TODO mogelijk om deze dynamisch te laten loaden in Nestjs !
-    //https://stackoverflow.com/questions/69144734/how-to-dynamically-inject-providers-in-nestjs
-    setTimeout(
-      () => load(folder, extension, configExtension, 'automation', _config, _eventEmitter, this._log),
-      1000,
-    )
-
-    // setTimeout(() => this.loadIntegrations(), 1000)
+    this._folder = this._config.get('integrationsfolder', '')
+    this._extension = this._config.get('integrationExtension', '.integration.js')
+    this._configExtension = this._config.get('configExtension', '.config.js')
   }
 
   getAllDebugInfo() {
     return this._integrations.map(integration => integration.debugInfo)
+  }
+
+  //TODO mogelijk om deze dynamisch te laten loaden in Nestjs !
+  //https://stackoverflow.com/questions/69144734/how-to-dynamically-inject-providers-in-nestjs
+  async loadAll() {
+    const loaded = await load(
+      this._folder,
+      this._extension,
+      this._configExtension,
+      'automation',
+      this._config,
+      this._eventEmitter,
+      this._log,
+    )
+    this._integrations = loaded as IntegrationBase[]
   }
 }

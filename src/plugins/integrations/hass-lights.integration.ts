@@ -6,6 +6,8 @@ import { IntegrationBase } from '@src/architecture/loadable-base-classes/integra
 import { LightState, LightStateUpdate } from '@architecture/messages/state-updates/light-state-update.model'
 import { LightConfig } from './hass-lights/light.config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { CommandMessage, Message } from '@src/architecture/messages/message.model'
+import { ToggleLightCommand } from '@src/architecture/messages/commands/toggle-light.model'
 
 export default class HassLightsIntegration extends IntegrationBase {
   public readonly name = 'Home Assistant Lights'
@@ -18,6 +20,7 @@ export default class HassLightsIntegration extends IntegrationBase {
   private _statePollingInterval: number
   private _pollingJob?: NodeJS.Timeout
 
+  //TODO! setup nog laden uit configuratie
   constructor(
     _integrationFileName: string,
     eventEmitter: EventEmitter2,
@@ -50,6 +53,7 @@ export default class HassLightsIntegration extends IntegrationBase {
   async start() {
     // start listening to `light` commands
     this._pollingJob = setInterval(() => this.getLightStates(), this._statePollingInterval)
+    this._eventEmitter.on('**', msg => this.onEvent(msg))
     return true
   }
 
@@ -57,12 +61,21 @@ export default class HassLightsIntegration extends IntegrationBase {
     clearInterval(this._pollingJob)
   }
 
+  onEvent(message: Message) {
+    if (message instanceof CommandMessage) {
+      if (message instanceof ToggleLightCommand) {
+        this._log.log(`toggling "${message.entity}" (from ${message.origin})`)
+        this.toggle(message.entity)
+      }
+    }
+  }
+
   private setEmptyStates() {
     keys(this._lights).forEach(k => (this._states[k] = new LightState()))
   }
 
-  public async switch(entityName: string, newState: boolean | undefined): Promise<void> {
-    if (!newState || !keys(this._lights).includes(entityName)) {
+  public async switch(entityName: string, newState: boolean): Promise<void> {
+    if (!Object.keys(this._lights).includes(entityName)) {
       this._log.warn(`Light ${entityName} is not known, no action taken`)
       return
     }

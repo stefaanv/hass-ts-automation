@@ -1,4 +1,4 @@
-import { EventMessage, StateUpdate } from '../message.model'
+import { EventMessage } from '../message.model'
 
 export class ButtonPressed extends EventMessage {
   constructor(origin: string, entity: string, timestamp = new Date()) {

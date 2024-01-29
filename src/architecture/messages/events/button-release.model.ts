@@ -1,4 +1,4 @@
-import { EventMessage, StateUpdate } from '../message.model'
+import { EventMessage } from '../message.model'
 
 export class ButtonReleased extends EventMessage {
   constructor(

@@ -9,7 +9,7 @@ export default {
       ip: '192.168.0.52',
       cobId: 42071,
       switches: {
-        0: 'test',
+        0: 'sw-bureau-deur-B1',
       },
     } as PlcConfig,
     // {

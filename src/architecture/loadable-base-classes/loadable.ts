@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import { ConfigService } from '@nestjs/config'
-import { Logger, LoggerService } from '@nestjs/common'
 import { get } from '@bruyland/utilities'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { Message } from '../messages/message.model'
 
 export const LoadableSchema = z.object({
   name: z.string(),
@@ -46,6 +46,10 @@ export abstract class Loadable implements ILoadable {
   ) {}
 
   public debug: boolean = false
+
+  sendMessage(message: Message) {
+    this._eventEmitter.emit(message.entity, message)
+  }
 
   protected getConfig<T>(key: string): T | undefined
   protected getConfig<T>(key: string, dflt: T): T

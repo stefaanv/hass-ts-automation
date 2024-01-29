@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common'
+import { Controller, Get } from '@nestjs/common'
 import { AppService } from './app.service'
 // import { StateRepoService } from './architecture/state-repo.service.ts.disabled'
 import { EventEmitter2 } from '@nestjs/event-emitter'
@@ -13,11 +13,6 @@ export class AppController {
 
   @Get('debug')
   debugInfo() {
-    return this.appService.debugInfo()
-  }
-
-  @Get('test')
-  test() {
     return this.appService.debugInfo()
   }
 
