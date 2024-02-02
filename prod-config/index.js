@@ -3,9 +3,9 @@ Object.defineProperty(exports, '__esModule', { value: true })
 const { resolve } = require('path')
 exports.default = () => ({
   port: 3001,
-  integrationsfolder: resolve(__dirname, '..', 'plugins', 'integrations'),
+  integrationsFolder: resolve(__dirname, '..', 'plugins', 'integrations'),
   integrationExtension: '.integration.js',
-  automationsfolder: resolve(__dirname, '..', 'plugins', 'automations'),
+  automationsFolder: resolve(__dirname, '..', 'plugins', 'automations'),
   automationExtension: '.automation.js',
   configExtension: '.config.js',
   keepSensorHistory: 10,

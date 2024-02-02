@@ -1,4 +1,4 @@
-import { PlcClusterConfig, PlcConfig } from './wago/plc.config.model'
+import { PlcClusterConfig, PlcConfig } from '../plugins/integrations/wago/plc.config.model'
 
 export default {
   addressStart: 20,

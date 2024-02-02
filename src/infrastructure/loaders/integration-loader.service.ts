@@ -1,6 +1,5 @@
 import { Injectable, Logger, LoggerService } from '@nestjs/common'
 import { IntegrationBase } from '../loadable-base-classes/integration.base'
-import { tryit } from '@bruyland/utilities'
 import { EventEmitter2 } from 'eventemitter2'
 import { ConfigService } from '@nestjs/config'
 import { load } from './loader-base'
@@ -11,6 +10,7 @@ export class IntegrationLoader {
   private _integrations: IntegrationBase[] = []
   private readonly _log: LoggerService
   private readonly _folder: string
+  private readonly _localConfigFolder: string
   private readonly _extension: string
   private readonly _configExtension: string
 
@@ -19,8 +19,9 @@ export class IntegrationLoader {
     private readonly _eventEmitter: EventEmitter2,
   ) {
     this._log = new Logger(IntegrationLoader.name)
-    this._folder = this._config.get('integrationsfolder', '')
-    this._extension = this._config.get('integrationExtension', '.integration.js')
+    this._folder = this._config.get('integrations.programFolder', '')
+    this._extension = this._config.get('integrations.extension', '.integration.js')
+    this._localConfigFolder = this._config.get('integrations.configFolder', '')
     this._configExtension = this._config.get('configExtension', '.config.js')
   }
 

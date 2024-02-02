@@ -3,7 +3,7 @@ import { Entity } from '../entities/entity.model'
 import { Logger } from '@nestjs/common'
 import { Message } from '../messages/message.model'
 
-const GOBAL_INTEGRATIONS_CONFIG_PREFIX = 'integrations'
+const GOBAL_INTEGRATIONS_CONFIG_PREFIX = 'integrationsConfig'
 
 export abstract class IntegrationBase extends Loadable {
   protected _log: Logger = new Logger(IntegrationBase.name)

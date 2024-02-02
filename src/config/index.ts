@@ -1,14 +1,28 @@
 import { resolve } from 'path'
+const mainConfigFolder = resolve(__dirname)
+const projectRoot = resolve(__dirname, '..')
+const pluginsFolder = resolve(projectRoot, 'plugins')
 
 export default () => ({
   port: 3000,
-  integrationsfolder: resolve(__dirname, '..', 'plugins', 'integrations'),
-  integrationExtension: '.integration.js',
-  automationsfolder: resolve(__dirname, '..', 'plugins', 'automations'),
-  automationExtension: '.automation.js',
+  folders: {
+    mainConfigFolder,
+    projectRoot,
+    pluginsFolder,
+  },
+  integrations: {
+    programFolder: resolve(pluginsFolder, 'integrations'),
+    configFolder: mainConfigFolder,
+    extension: '.integration.js',
+  },
+  automations: {
+    programFolder: resolve(pluginsFolder, 'automations'),
+    configFolder: mainConfigFolder,
+    extension: '.automation.js',
+  },
   configExtension: '.config.js',
   keepSensorHistory: 10,
-  integrations: {
+  integrationsConfig: {
     dummy: {
       test: 'my test config string',
       entities: ['entity-one', 'entity-two'],

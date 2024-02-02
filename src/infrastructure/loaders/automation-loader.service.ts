@@ -10,6 +10,7 @@ export class AutomationLoader {
   private readonly _log: LoggerService
   private _automations: AutomationBase[] = []
   private readonly _folder: string
+  private readonly _localConfigFolder: string
   private readonly _extension: string
   private readonly _configExtension: string
 
@@ -18,8 +19,9 @@ export class AutomationLoader {
     private readonly _eventEmitter: EventEmitter2,
   ) {
     this._log = new Logger(AutomationLoader.name)
-    this._folder = this._config.get('automationsfolder', '')
-    this._extension = this._config.get('automationExtension', '.automation.js')
+    this._folder = this._config.get('automations.programFolder', '')
+    this._extension = this._config.get('automations.extension', '.automation.js')
+    this._localConfigFolder = this._config.get('automations.configFolder', '')
     this._configExtension = this._config.get('configExtension', '.config.js')
   }
 
