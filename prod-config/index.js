@@ -19,7 +19,7 @@ exports.default = () => ({
       authToken: process.env.HASS_AUTH_TOKEN,
       statePollingInterval: 2000,
       lights: {
-        slaapkamer4: { hassEntityName: 'slaapkamer_4', maxBrightness: 255 },
+        slaapkamer4: { hassEntityId: 'slaapkamer_4', maxBrightness: 255 },
       },
     },
   },

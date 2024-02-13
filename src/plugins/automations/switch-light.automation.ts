@@ -40,7 +40,7 @@ export default class SwitchLights extends AutomationBase {
 
   onMessage(message: Message) {
     if (message instanceof ButtonPressed) {
-      console.log(message.entity)
+      // console.log(message.entity)
       for (const connection of this._singleButtonOnOff) {
         if (message.entity === connection.switch)
           this.sendMessage(new ToggleLightCommand(this.id, connection.light))

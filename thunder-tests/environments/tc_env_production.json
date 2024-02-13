@@ -1,7 +1,7 @@
 {
     "_id": "1470d3f6-ee0d-47b4-bcf8-dfce1bfc57fd",
     "name": "production",
-    "default": true,
+    "default": false,
     "sortNum": 20000,
     "created": "2024-01-29T18:06:24.464Z",
     "modified": "2024-01-29T18:06:24.464Z",

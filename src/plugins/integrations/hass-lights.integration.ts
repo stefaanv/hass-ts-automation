@@ -3,7 +3,11 @@ import { Logger } from '@nestjs/common'
 import axios, { Axios } from 'axios'
 import { keys, tryit } from 'radash'
 import { IntegrationBase } from '@src/infrastructure/loadable-base-classes/integration.base'
-import { LightState, LightStateUpdate } from '@infrastructure/messages/state-updates/light-state-update.model'
+import {
+  LightState,
+  LightStateEnum,
+  LightStateUpdate,
+} from '@infrastructure/messages/state-updates/light-state-update.model'
 import { LightConfig } from './hass-lights/light.config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { CommandMessage, Message } from '@src/infrastructure/messages/message.model'
@@ -74,49 +78,52 @@ export default class HassLightsIntegration extends IntegrationBase {
     Object.keys(this._lights).forEach(k => (this._states[k] = new LightState()))
   }
 
-  public async switch(entityName: string, newState: boolean): Promise<void> {
+  public async switch(entityName: string, newState: 'on' | 'off'): Promise<void> {
     if (!Object.keys(this._lights).includes(entityName)) {
       this._log.warn(`Light ${entityName} is not known, no action taken`)
       return
     }
     const oldState = this._states[entityName]
-    if (!oldState.reachable) {
+    if (!oldState.state || oldState.state === 'unreachable') {
       this._log.warn(`Light ${entityName} is not reachable, no action taken`)
       return
     }
-    if (oldState.on === newState) return
+    if (oldState.state === newState) return
 
-    const hassEntityName = this._lights[entityName].hassEntityName
-    const data = { entity_id: `light.${hassEntityName}` }
+    const hassEntityId = this._lights[entityName].hassEntityId
+    const data = { entity_id: `light.${hassEntityId}` }
     const url = `services/light/turn_${newState ? 'on' : 'off'}`
     const [error, result] = await tryit(this._axios.post)(url, data)
     if (error) {
       this._log.error(error.message)
       return
     }
-    const changedState = new LightState(oldState)
-    changedState.on = newState
+    const changedState = LightState.clone(oldState)
+    changedState.state = newState
     this.reportStateChange(entityName, changedState)
   }
 
   public async toggle(entityName: string) {
-    await this.switch(entityName, !this._states[entityName]?.on)
+    const oldState: LightState = this._states[entityName]
+    if (!oldState.isKnownAndReachable) {
+      this._log.warn(`unable to toggle ${oldState.state} state on light "${entityName}"`)
+      return
+    }
+    await this.switch(entityName, oldState.state === 'on' ? 'off' : 'on')
   }
 
   public async getLightStates(): Promise<void> {
     for await (const key of Object.keys(this._lights)) {
       const lightConfig = this._lights[key]
-      const [error, result] = await tryit(this._axios.get)(`states/light.${lightConfig.hassEntityName}`)
+      const [error, result] = await tryit(this._axios.get)(`states/light.${lightConfig.hassEntityId}`)
       if (error) {
         this._log.error(error)
       } else {
         const hassLightStateObject = result?.data
         if (hassLightStateObject) {
           const oldState = this._states[key]
-          const newState = new LightState(oldState)
-          if (hassLightStateObject.state != 'reachable') newState.reachable = true
-          if (['on', 'off'].includes(hassLightStateObject.state))
-            newState.on = hassLightStateObject.state === 'on'
+          const newState = LightState.clone(oldState)
+          newState.state = hassLightStateObject.state
           if (hassLightStateObject.state == 'on')
             newState.brightness = hassLightStateObject.attributes?.brightness
           this.reportStateChange(key, newState)

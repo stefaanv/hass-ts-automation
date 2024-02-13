@@ -13,6 +13,7 @@ export class IntegrationLoader {
   private readonly _localConfigFolder: string
   private readonly _extension: string
   private readonly _configExtension: string
+  private readonly _ignoreIntegrations: string[]
 
   constructor(
     private readonly _config: ConfigService,
@@ -23,16 +24,14 @@ export class IntegrationLoader {
     this._extension = this._config.get('integrations.extension', '.integration.js')
     this._localConfigFolder = this._config.get('integrations.configFolder', '')
     this._configExtension = this._config.get('configExtension', '.config.js')
+    this._ignoreIntegrations = this._config.get<string[]>('integrations.ignore', [])
   }
 
   getAllDebugInfo() {
     return objectify(
       this._integrations,
-      value => value.id,
-      value => ({
-        debug: value.debug,
-        debugInfo: value.debugInfo,
-      }),
+      value => value.id, //key
+      value => value.debugInfo, //value
     )
   }
 
@@ -42,8 +41,10 @@ export class IntegrationLoader {
     const loaded = await load(
       this._folder,
       this._extension,
+      this._localConfigFolder,
       this._configExtension,
       'integration',
+      this._ignoreIntegrations,
       this._config,
       this._eventEmitter,
       this._log,

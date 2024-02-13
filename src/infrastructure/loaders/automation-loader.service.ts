@@ -13,6 +13,7 @@ export class AutomationLoader {
   private readonly _localConfigFolder: string
   private readonly _extension: string
   private readonly _configExtension: string
+  private readonly _ignoreAutomations: string[]
 
   constructor(
     private readonly _config: ConfigService,
@@ -23,6 +24,7 @@ export class AutomationLoader {
     this._extension = this._config.get('automations.extension', '.automation.js')
     this._localConfigFolder = this._config.get('automations.configFolder', '')
     this._configExtension = this._config.get('configExtension', '.config.js')
+    this._ignoreAutomations = this._config.get<string[]>('automations.ignore', [])
   }
 
   getAllDebugInfo() {
@@ -35,8 +37,10 @@ export class AutomationLoader {
     const loaded = await load(
       this._folder,
       this._extension,
+      this._localConfigFolder,
       this._configExtension,
       'automation',
+      this._ignoreAutomations,
       this._config,
       this._eventEmitter,
       this._log,

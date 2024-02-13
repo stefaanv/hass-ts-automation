@@ -1,26 +1,31 @@
 import { white } from 'ansi-colors'
 import { StateUpdate } from '../message.model'
+import { number, unknown } from 'zod'
+
+export const LIGHT_STATES = ['on', 'off', 'unreachable', undefined] as const
+export type LightStateEnum = (typeof LIGHT_STATES)[number]
 
 export class LightState {
-  on: boolean
-  brightness?: number
-  reachable: boolean
+  constructor(
+    public state: LightStateEnum = undefined,
+    public brightness: number | undefined = undefined,
+  ) {}
 
-  constructor(content?: Partial<LightState>) {
-    this.reachable = content?.reachable ?? false
-    this.on = content?.on ?? false
-    this.brightness = content?.brightness ?? 0
+  static clone(other: LightState) {
+    return new LightState(other.state, other.brightness)
   }
 
   isEqual(other: LightState) {
     if (!other) return false
-    return this.reachable == other.reachable && this.on == other.on && this.reachable == other.reachable
+    return this.state == other.state && this.brightness === other.brightness
+  }
+
+  get isKnownAndReachable() {
+    return this.state === 'off' || this.state === 'on'
   }
 
   toString() {
-    const result =
-      (!this.reachable ? 'unreachable' : this.on ? 'ON' : 'OFF') +
-      (this.reachable && this.on ? ` (bri ${this.brightness})` : '')
+    const result = this.state + (this.state === 'on' ? ` (bri ${this.brightness})` : '')
     return result
   }
 }

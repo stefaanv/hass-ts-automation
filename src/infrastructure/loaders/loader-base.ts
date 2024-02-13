@@ -17,16 +17,23 @@ const tryImport = tryit(async (file: string) => import(file))
 export async function load(
   folder: string,
   extension: string,
+  configFolder: string,
   configExtension: string,
   type: 'automation' | 'integration',
+  ignore: string[],
   config: ConfigService,
   eventEmitter: EventEmitter2,
   log: LoggerService,
 ) {
   const result: ILoadable[] = []
-  const allFiles = readdirSync(folder, { recursive: true, withFileTypes: false, encoding: 'utf-8' })
-  const files = allFiles.filter(f => f.endsWith(extension))
-  const configFiles = allFiles.filter(f => f.endsWith(configExtension))
+  const allProgramFiles = readdirSync(folder, { recursive: true, withFileTypes: false, encoding: 'utf-8' })
+  const allLocalConfigFiles = readdirSync(configFolder, {
+    recursive: true,
+    withFileTypes: false,
+    encoding: 'utf-8',
+  })
+  const files = allProgramFiles.filter(f => f.endsWith(extension)).filter(f => !ignore.includes(f))
+  const configFiles = allLocalConfigFiles.filter(f => f.endsWith(configExtension))
 
   log.log(`Start loading ${files.length} ${type}s`)
   const stripRegex = new RegExp(`\\${extension}$`)
@@ -37,7 +44,7 @@ export async function load(
     let localConfig = {} // localConfig default in case of no config file or erors
     // try import the local config file
     if (configFiles.includes(configFilename)) {
-      const configFullPath = resolve(folder, configFilename)
+      const configFullPath = resolve(configFolder, configFilename)
       const either = await tryImport(configFullPath)
       if (isLeft(either)) {
         log.warn(`Unable to load local config file ${configFilename} - ${left(either).message}}`)
