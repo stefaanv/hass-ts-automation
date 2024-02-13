@@ -35,6 +35,10 @@ export class IntegrationLoader {
     )
   }
 
+  get(id: string) {
+    return this._integrations.find(i => i.id === id)
+  }
+
   //TODO mogelijk om deze dynamisch te laten loaden in Nestjs !
   //https://stackoverflow.com/questions/69144734/how-to-dynamically-inject-providers-in-nestjs
   async loadAll() {

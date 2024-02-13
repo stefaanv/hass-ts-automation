@@ -20,7 +20,7 @@ import {
   LightStateEnum,
   LightStateUpdate,
 } from '@src/infrastructure/messages/state-updates/light-state-update.model'
-import { mapEntries, mapKeys, mapValues } from '@bruyland/utilities'
+import { first, mapEntries, mapKeys, mapValues } from '@bruyland/utilities'
 import { CommandMessage, Message } from '@src/infrastructure/messages/message.model'
 import { ToggleLightCommand } from '@src/infrastructure/messages/commands/toggle-light.model'
 
@@ -127,35 +127,55 @@ export default class HassIntegration extends IntegrationBase {
     }
   }
 
-  public async toggleLight(entityName: string) {
-    const oldState: LightState = this._lightStates[entityName]
-    if (!oldState.isKnownAndReachable) {
-      this._log.warn(`unable to toggle ${oldState.state} state on light "${entityName}"`)
-      return
-    }
-    const toggleService = this._services?.light?.toggle //TODO!!!
-    await this.switch(entityName, oldState.state === 'on' ? 'off' : 'on')
+  override async test() {
+    this.toggleLight('slaapkamer4')
+    return 'hello, hass integration'
+  }
+
+  public async toggleLight(entityId: string) {
+    this.lightAction(entityId, 'toggle')
   }
 
   public async switch(entityId: string, newState: 'on' | 'off'): Promise<void> {
-    console.log(`HASS integration - switching ${entityId} to "${newState}"`)
-    const hassEntityId = this._lightConfig[entityId]
-    const hassState = `turn_${newState}`
+    this.lightAction(entityId, `turn_${newState}`)
+  }
+
+  private lightAction(entityId: string, action: string) {
+    const hassEntityId = this.getHassEntityId(entityId)
+    if (!hassEntityId) {
+      this._log.warn(`Unable to ${action} ${entityId}, entity is not known`)
+      return
+    }
+    this.serviceCall('light', action, hassEntityId)
+  }
+
+  private serviceCall(
+    domain: string,
+    service: string,
+    hassEntityId: string,
+    optionalServiceData: any = undefined,
+  ) {
     this._hassConnection?.sendMessage({
-      id: 1,
       type: 'call_service',
-      domain: 'light',
-      service: 'turn_on',
-      // Optional
-      // "service_data": {
-      //   "color_name": "beige",
-      //   "brightness": "101"
-      // },
-      // Optional
+      domain,
+      service,
+      service_data: optionalServiceData,
       target: {
         entity_id: hassEntityId,
       },
     })
+  }
+
+  private getHassEntityId(internalEntityId: string): string | undefined {
+    const light = this._lightConfig[internalEntityId]
+    if (light) return light.hassEntityId
+    return undefined
+  }
+
+  private getEntityId(hassEntityId: string): string | undefined {
+    const tuple = Object.entries(this._lightConfig).find(([, cfg]) => cfg.hassEntityId === hassEntityId)
+    if (tuple) return tuple[0]
+    return undefined
   }
 
   private hassStateChangeHandler(e: HassEventType) {
@@ -186,14 +206,11 @@ export default class HassIntegration extends IntegrationBase {
   }
 
   private handleLightStateChange(hassEntityId: string, hassState: HassState) {
-    const result = Object.entries(this._lightConfig).find(
-      ([key, value]) => value.hassEntityId === hassEntityId,
-    )
-    if (!result) {
+    const entityId = this.getEntityId(hassEntityId)
+    if (!entityId) {
       // this light entity is not in the configuration - skipping processing
       return
     }
-    const [entityId] = result
     const oldState = this._lightStates[entityId]
     if (!oldState) {
       this._log.error(`light with entity id = ${entityId} not found in _lightStates object`)

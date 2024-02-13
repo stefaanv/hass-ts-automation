@@ -12,4 +12,9 @@ export abstract class IntegrationBase extends Loadable {
     return [GOBAL_INTEGRATIONS_CONFIG_PREFIX, this.id]
   }
   abstract get debugInfo(): object
+  async test(...params: any[]): Promise<any> {
+    const msg = `no test defined in ${this.id} integration`
+    this._log.error(msg)
+    return msg
+  }
 }
