@@ -26,12 +26,20 @@ export async function load(
   log: LoggerService,
 ) {
   const result: ILoadable[] = []
-  const allProgramFiles = readdirSync(folder, { recursive: true, withFileTypes: false, encoding: 'utf-8' })
-  const allLocalConfigFiles = readdirSync(configFolder, {
-    recursive: true,
-    withFileTypes: false,
-    encoding: 'utf-8',
-  })
+  let allProgramFiles: string[] = []
+  let allLocalConfigFiles: string[] = []
+  try {
+    allProgramFiles = readdirSync(folder, { recursive: true, withFileTypes: false, encoding: 'utf-8' })
+    allLocalConfigFiles = readdirSync(configFolder, {
+      recursive: true,
+      withFileTypes: false,
+      encoding: 'utf-8',
+    })
+  } catch (error) {
+    log.error(error)
+    console.log('programsFolder=', folder)
+    console.log('configFolder=', configFolder)
+  }
   const files = allProgramFiles.filter(f => f.endsWith(extension)).filter(f => !ignore.includes(f))
   const configFiles = allLocalConfigFiles.filter(f => f.endsWith(configExtension))
 

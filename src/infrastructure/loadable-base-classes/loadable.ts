@@ -55,7 +55,7 @@ export abstract class Loadable implements ILoadable {
   protected getConfig<T>(key: string, dflt: T): T
   protected getConfig<T>(key: string, dflt?: T) {
     const local = get<T>(this._localConfig, key)
-    if (local !== undefined) return local
+    if (local !== undefined && Object.keys(local).length > 0) return local
     const keyChain = [...this.globalConfigKeyChain, key].join('.')
     return dflt === undefined
       ? this._globalConfig.get<T>(keyChain)

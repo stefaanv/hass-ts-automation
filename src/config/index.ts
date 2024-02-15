@@ -23,21 +23,51 @@ export default () => ({
   },
   configExtension: '.config.js',
   keepSensorHistory: 10,
-  // integrationsConfig: {
-  //   dummy: {
-  //     test: 'my test config string',
-  //     entities: ['entity-one', 'entity-two'],
-  //   },
-  //   'hass-lights': {
-  //     baseUrl: 'http://homeassistant.local:8123/api',
-  //     authToken:
-  //       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI0YjFmY2EyOWU5ZWU0NTJiYmRiNTY4MjNkZjJhNWRkNCIsImlhdCI6MTY5NTc1MDk2MSwiZXhwIjoyMDExMTEwOTYxfQ.YUn0PYL8xc2kpE9yGI1N2NK9SGkkAVEFm1mf9QT5DI8',
-  //     statePollingInterval: 2000,
-  //     lights: {
-  //       slaapkamer4: { hassEntityId: 'slaapkamer_4', maxBrightness: 255 },
-  //     },
-  //   },
-  // },
+  integrationsConfig: {
+    hass: {
+      baseUrl: process.env.HASS_BASE_URL,
+      authToken: process.env.HASS_AUTH_TOKEN,
+      user: 'js-automations',
+      statePollingInterval: 2000,
+      printCategories: ['light'],
+      lights: {
+        slaapkamer4: { hassEntityId: 'light.slaapkamer_4', maxBrightness: 255 },
+      },
+    },
+    'wago-nv': {
+      addressStart: 20,
+      shortPressTime: 350, //ms
+      plcs: [
+        {
+          name: 'liftkoker',
+          ip: '192.168.0.52',
+          cobId: 42071,
+          switches: {
+            0: 'sw-bureau-deur-B1',
+            1: 'sw-dummy',
+          },
+        },
+      ],
+    },
+    automationsConfig: {
+      'switch-light': {
+        'single-button-on-off': [{ switch: 'sw_slpk4_deur_A1', light: 'slaapkamer4' }],
+      },
+    },
+    //   dummy: {
+    //     test: 'my test config string',
+    //     entities: ['entity-one', 'entity-two'],
+    //   },
+    //   'hass-lights': {
+    //     baseUrl: 'http://homeassistant.local:8123/api',
+    //     authToken:
+    //       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI0YjFmY2EyOWU5ZWU0NTJiYmRiNTY4MjNkZjJhNWRkNCIsImlhdCI6MTY5NTc1MDk2MSwiZXhwIjoyMDExMTEwOTYxfQ.YUn0PYL8xc2kpE9yGI1N2NK9SGkkAVEFm1mf9QT5DI8',
+    //     statePollingInterval: 2000,
+    //     lights: {
+    //       slaapkamer4: { hassEntityId: 'slaapkamer_4', maxBrightness: 255 },
+    //     },
+    //   },
+  },
   stateRepo: {
     keepMaxNumber: 10,
     keepMinNumber: 3,

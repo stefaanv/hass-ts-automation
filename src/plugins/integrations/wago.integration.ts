@@ -45,16 +45,18 @@ export default class WagoIntegration extends IntegrationBase {
     this._debugInfo = { lastMsgReceivedFrom: {}, lastStateChanges: {} } as WagoIntegrationDebugInfo
 
     // get the configuration
-    const config = this.getConfig<PlcClusterConfig>('', {} as PlcClusterConfig)
-    this.entities = config.plcs.flatMap(plc =>
+    const plcs = this.getConfig<PlcConfig[]>('plcs', [] as PlcConfig[])
+    this.entities = plcs.flatMap(plc =>
       Object.entries(plc.switches).map(([k, v]) => new Entity({ name: v, type: 'button' })),
     )
+    console.log(`Wago entities`, this.entities)
+
     this._states = Object.fromEntries(
-      config.plcs.flatMap(plc => Object.values(plc.switches)).map(name => [name, false]),
+      plcs.flatMap(plc => Object.values(plc.switches)).map(name => [name, false]),
     )
 
-    this._plcs = config.plcs
-    this._startAddress = config.addressStart
+    this._plcs = plcs
+    this._startAddress = this.getConfig<number>('addressStart', 0)
 
     this._server = udp.createSocket({ type: 'udp4' })
   }
@@ -62,7 +64,7 @@ export default class WagoIntegration extends IntegrationBase {
   override async start(): Promise<boolean> {
     // set up the UDP listener
     try {
-      this._server.bind(WAGO_PORT)
+      this._server.bind(WAGO_PORT, '192.168.0.10')
       this.setUdpListeners()
       return true
     } catch (error) {
@@ -79,10 +81,11 @@ export default class WagoIntegration extends IntegrationBase {
     this._server.on('listening', () => {
       const address = this._server.address()
       const port = address.port
-      // console.log('WAGO Server is listening at port ' + port)
+      console.log('WAGO Server is listening at', address)
     })
 
     this._server.on('message', (buffer, msg) => {
+      console.log(buffer)
       this.diff(buffer)
     })
 
@@ -112,11 +115,11 @@ export default class WagoIntegration extends IntegrationBase {
       if (newState !== oldState) {
         if (newState) {
           // this.emit<'pressed'>('pressed', switchName)
-          // console.log('pressed', switchName)
+          console.log('pressed', switchName)
           this._buttonPressStarts[switchName] = now
           this.sendMessage(new ButtonPressed(this.id, switchName))
         } else {
-          // console.log('released', switchName)
+          console.log('released', switchName)
           const start = this._buttonPressStarts[switchName] ?? now
           const duration = differenceInMilliseconds(now, start)
           this.sendMessage(new ButtonReleased(this.id, switchName, duration))
