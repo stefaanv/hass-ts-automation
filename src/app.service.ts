@@ -19,4 +19,11 @@ export class AppService {
       automations: this._automations.getAllDebugInfo(),
     }
   }
+
+  configInfo() {
+    return {
+      integrations: this._integrations.getAllConfigInfo(),
+      automations: this._automations.getAllConfigInfo(),
+    }
+  }
 }

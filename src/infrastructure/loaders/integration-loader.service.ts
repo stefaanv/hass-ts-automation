@@ -30,8 +30,16 @@ export class IntegrationLoader {
   getAllDebugInfo() {
     return objectify(
       this._integrations,
-      value => value.id, //key
-      value => value.debugInfo, //value
+      i => i.id,
+      i => i.debugInfo,
+    )
+  }
+
+  getAllConfigInfo() {
+    return objectify(
+      this._integrations,
+      i => i.id,
+      i => i.configInfo,
     )
   }
 

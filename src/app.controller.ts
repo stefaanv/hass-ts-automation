@@ -16,6 +16,11 @@ export class AppController {
     return this.appService.debugInfo()
   }
 
+  @Get('config')
+  configInfo() {
+    return this.appService.configInfo()
+  }
+
   // @Get('states')
   // getCurrentStates() {
   //   return this.stateRepo.currentStates

@@ -20,15 +20,15 @@
             "tests": []
         },
         {
-            "_id": "294b91d7-27fa-4456-8150-9c55ce25464d",
+            "_id": "ef8fbeb0-8c6a-4b42-8479-f78296423eae",
             "colId": "77ee8915-8d78-42a5-9664-cd0d00d3417d",
             "containerId": "",
-            "name": "test",
-            "url": "{{baseUrl}}/test",
+            "name": "get config info",
+            "url": "{{baseUrl}}/config",
             "method": "GET",
-            "sortNum": 20000,
-            "created": "2024-02-13T15:05:58.108Z",
-            "modified": "2024-02-13T15:06:35.968Z",
+            "sortNum": 15000,
+            "created": "2024-02-16T15:30:39.817Z",
+            "modified": "2024-02-16T15:31:01.875Z",
             "headers": [],
             "params": [],
             "tests": []

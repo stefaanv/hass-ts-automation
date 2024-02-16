@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { AutomationBase } from '../loadable-base-classes/automation.base'
 import { load } from './loader-base'
+import { objectify } from 'radash'
 
 @Injectable()
 export class AutomationLoader {
@@ -27,8 +28,21 @@ export class AutomationLoader {
     this._ignoreAutomations = this._config.get<string[]>('automations.ignore', [])
   }
 
+  // TODO deze nog naar super klasse verplaatsen
   getAllDebugInfo() {
-    return {}
+    return objectify(
+      this._automations,
+      a => a.id,
+      a => a.debugInfo,
+    )
+  }
+
+  getAllConfigInfo() {
+    return objectify(
+      this._automations,
+      a => a.id,
+      a => a.configInfo,
+    )
   }
 
   //TODO mogelijk om deze dynamisch te laten loaden in Nestjs !
