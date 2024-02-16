@@ -11,11 +11,12 @@ interface SwitchLightConnection {
   light: string
 }
 
+const ID = 'switch-lights'
 export default class SwitchLights extends AutomationBase {
   public name = 'Switch lights'
   public version = '0.0.1'
-  public id = 'switch-lights'
-  private _singleButtonOnOff: SwitchLightConnection[]
+  public id = ID
+  private _singleButtonToggle: SwitchLightConnection[]
 
   //TODO setup nog laden uit configuratie
   constructor(
@@ -24,10 +25,8 @@ export default class SwitchLights extends AutomationBase {
     localConfig: any,
     globalConfig: ConfigService,
   ) {
-    super(eventEmitter, localConfig, globalConfig)
-    this._log = new Logger(SwitchLights.name)
-    this._eventEmitter.on('**', message => this.onMessage(message))
-    this._singleButtonOnOff = this.getConfig('single-button-on-off', [])
+    super(ID, eventEmitter, localConfig, globalConfig)
+    this._singleButtonToggle = this.getConfig('single-button-on-off', [])
   }
 
   async start(): Promise<boolean> {
@@ -38,13 +37,24 @@ export default class SwitchLights extends AutomationBase {
     //does nothing
   }
 
-  onMessage(message: Message) {
+  override handleInternalMessage(message: Message) {
     if (message instanceof ButtonPressed) {
       // console.log(message.entity)
-      for (const connection of this._singleButtonOnOff) {
-        if (message.entity === connection.switch)
-          this.sendMessage(new ToggleLightCommand(this.id, connection.light))
+      for (const connection of this._singleButtonToggle) {
+        if (message.entity === connection.switch) {
+          this._log.verbose(`Toggling light ${this.id}`)
+          this.sendInternalMessage(new ToggleLightCommand(this.id, connection.light))
+        }
       }
+    }
+  }
+
+  get debugInfo() {
+    return undefined
+  }
+  get configInfo() {
+    return {
+      ingleButtonToggle: this._singleButtonToggle,
     }
   }
 }

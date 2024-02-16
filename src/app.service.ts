@@ -19,9 +19,4 @@ export class AppService {
       automations: this._automations.getAllDebugInfo(),
     }
   }
-
-  test() {
-    const hassIntegration = this._integrations.get('hass')
-    return hassIntegration!.test()
-  }
 }

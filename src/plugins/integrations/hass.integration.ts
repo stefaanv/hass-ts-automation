@@ -65,15 +65,15 @@ interface HassLightStateAttributes {
   brightness: number
 }
 
+const ID = 'hass'
 export default class HassIntegration extends IntegrationBase {
   public name = 'Home Assistant websocket'
   public version = '0.0.1'
-  public id = 'hass'
+  public id = ID
 
   private _hassConnection?: Connection = undefined
   private _hassUrl: string
   private _hassToken: string
-  private _stateRepo: Record<string, object> = {}
   private readonly _printCategories: string[] = []
   private readonly _lightConfig: Record</** internal entity name */ string, LightConfig>
   private readonly _lightStates: Record</** hass entity name */ string, LightState> = {}
@@ -86,8 +86,7 @@ export default class HassIntegration extends IntegrationBase {
     localConfig: any, // content of the config file with the same name as the driver file
     globalConfig: ConfigService,
   ) {
-    super(eventEmitter, localConfig, globalConfig)
-    this._log = new Logger(HassIntegration.name)
+    super(ID, eventEmitter, localConfig, globalConfig)
 
     //get config
     this._lightConfig = this.getConfig<Record<string, LightConfig>>('lights', {})
@@ -103,7 +102,6 @@ export default class HassIntegration extends IntegrationBase {
     try {
       this._hassConnection = await createConnection({ auth })
       this._hassConnection!.subscribeEvents(e => this.hassStateChangeHandler(e as HassEventType))
-      this._eventEmitter.on('**', msg => this.onEvent(msg))
       this._services = await getServices(this._hassConnection)
       return true
     } catch (error) {
@@ -118,18 +116,13 @@ export default class HassIntegration extends IntegrationBase {
 
   override async stop() {}
 
-  onEvent(message: Message) {
+  override handleInternalMessage(message: Message) {
     if (message instanceof CommandMessage) {
       if (message instanceof ToggleLightCommand) {
         this._log.log(`toggling "${message.entity}" (from ${message.origin})`)
         this.toggleLight(message.entity)
       }
     }
-  }
-
-  override async test() {
-    this.toggleLight('slaapkamer4')
-    return 'hello, hass integration'
   }
 
   public async toggleLight(entityId: string) {
@@ -219,23 +212,18 @@ export default class HassIntegration extends IntegrationBase {
     const newState = new LightState(hassState.state as LightStateEnum, hassState.attributes.brightness)
     if (hassState.state != 'on') newState.brightness = oldState.brightness
     if (!oldState.isEqual(newState)) {
-      this._log.verbose(`state of ${entityId} changed to ${newState.toString()}`)
-      this.sendMessage(new LightStateUpdate(this.id, entityId, newState))
+      // this._log.verbose(`state of ${entityId} changed to ${newState.toString()}`)
+      this.sendInternalMessage(new LightStateUpdate(this.id, entityId, newState))
       this._lightStates[entityId] = newState
     }
   }
 
   get debugInfo(): object {
-    //TODO!!! alle light states doorgeven
     return { lightStates: this._lightStates }
   }
+  get configInfo(): object {
+    return {
+      lightsConfig: this._lightConfig,
+    }
+  }
 }
-
-/*
-light.slaapkamer_4 on {"effect_list":["None","candle"],"supported_color_modes":["brightness"],"color_mode":"brightness","brightness":141,"effect":"None","mode":"normal","dynamics":"none","friendly_name":"Slaapkamer 4","supported_features":44}
-light.slpk_4 on {"supported_color_modes":["brightness"],"color_mode":"brightness","brightness":141,"is_hue_group":true,"hue_scenes":[],"hue_type":"room","lights":["Slaapkamer 4"],"dynamics":false,"icon":"mdi:lightbulb-group","friendly_name":"Slpk 4","supported_features":40}
-[Nest] 21440  - 12/02/2024 12:06:41 VERBOSE [Home Assistant Lights] state of slaapkamer4 changed to ON (bri 141)
-[Nest] 21440  - 12/02/2024 12:06:41     LOG [MessagePrinter] LightStateUpdate -> Light "slaapkamer4" changed to ON (bri 141)
-light.slaapkamer_4 off {"effect_list":["None","candle"],"supported_color_modes":["brightness"],"color_mode":null,"brightness":null,"effect":null,"mode":"normal","dynamics":"none","friendly_name":"Slaapkamer 4","supported_features":44}
-light.slpk_4 off {"supported_color_modes":["brightness"],"color_mode":null,"brightness":null,"is_hue_group":true,"hue_scenes":[],"hue_type":"room","lights":["Slaapkamer 4"],"dynamics":false,"icon":"mdi:lightbulb-group","friendly_name":"Slpk 4","supported_features":40}
-*/

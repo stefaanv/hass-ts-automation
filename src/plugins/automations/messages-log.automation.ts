@@ -4,10 +4,11 @@ import { Message } from '@infrastructure/messages/message.model'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from '@nestjs/common'
 
-export default class MessagePrinter extends AutomationBase {
-  public name = 'Print all messages'
+const ID = 'msg-logger'
+export default class MessageLogger extends AutomationBase {
+  public name = 'Log all messages'
   public version = '0.0.1'
-  public id = 'print-all'
+  public id = ID
 
   constructor(
     _automationFileName: string,
@@ -15,9 +16,7 @@ export default class MessagePrinter extends AutomationBase {
     localConfig: any,
     globalConfig: ConfigService,
   ) {
-    super(eventEmitter, localConfig, globalConfig)
-    this._log = new Logger(MessagePrinter.name)
-    this._eventEmitter.on('**', message => this.onMessage(message))
+    super(ID, eventEmitter, localConfig, globalConfig)
   }
 
   async start(): Promise<boolean> {
@@ -28,8 +27,15 @@ export default class MessagePrinter extends AutomationBase {
     //does nothing
   }
 
-  onMessage(message: Message) {
+  override handleInternalMessage(message: Message) {
     const msg = message.toString()
     this._log.log(message.constructor.name + ' -> ' + msg.toString())
+  }
+
+  get debugInfo() {
+    return undefined
+  }
+  get configInfo() {
+    return { active: true }
   }
 }

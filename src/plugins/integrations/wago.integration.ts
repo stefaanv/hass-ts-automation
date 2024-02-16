@@ -19,11 +19,11 @@ export interface WagoIntegrationDebugInfo {
   }
   lastStateChanges: Record<string, string>
 }
-
+const ID = 'wago-nv'
 export default class WagoIntegration extends IntegrationBase {
   public readonly name = 'Wago Network Variables'
   public readonly version = '0.0.1'
-  public readonly id = 'wago-nv'
+  public readonly id = ID
 
   private _server: udp.Socket
   private _controller = new AbortController()
@@ -40,8 +40,7 @@ export default class WagoIntegration extends IntegrationBase {
     globalConfig: ConfigService,
   ) {
     // general setup
-    super(_eventEmitter, localConfig, globalConfig)
-    this._log = new Logger(WagoIntegration.name)
+    super(ID, _eventEmitter, localConfig, globalConfig)
     this._debugInfo = { lastMsgReceivedFrom: {}, lastStateChanges: {} } as WagoIntegrationDebugInfo
 
     // get the configuration
@@ -49,7 +48,6 @@ export default class WagoIntegration extends IntegrationBase {
     this.entities = plcs.flatMap(plc =>
       Object.entries(plc.switches).map(([k, v]) => new Entity({ name: v, type: 'button' })),
     )
-    console.log(`Wago entities`, this.entities)
 
     this._states = Object.fromEntries(
       plcs.flatMap(plc => Object.values(plc.switches)).map(name => [name, false]),
@@ -64,7 +62,7 @@ export default class WagoIntegration extends IntegrationBase {
   override async start(): Promise<boolean> {
     // set up the UDP listener
     try {
-      this._server.bind(WAGO_PORT, '192.168.0.10')
+      this._server.bind(WAGO_PORT)
       this.setUdpListeners()
       return true
     } catch (error) {
@@ -80,12 +78,10 @@ export default class WagoIntegration extends IntegrationBase {
   private setUdpListeners() {
     this._server.on('listening', () => {
       const address = this._server.address()
-      const port = address.port
-      console.log('WAGO Server is listening at', address)
+      this._log.log(`WAGO Server is listening at ${address.port}`)
     })
 
     this._server.on('message', (buffer, msg) => {
-      console.log(buffer)
       this.diff(buffer)
     })
 
@@ -98,6 +94,13 @@ export default class WagoIntegration extends IntegrationBase {
 
   public get debugInfo() {
     return this._debugInfo
+  }
+
+  public get configInfo() {
+    return {
+      plcs: this._plcs,
+      server: this._server.address(),
+    }
   }
 
   diff(buffer: Buffer) {
@@ -115,14 +118,14 @@ export default class WagoIntegration extends IntegrationBase {
       if (newState !== oldState) {
         if (newState) {
           // this.emit<'pressed'>('pressed', switchName)
-          console.log('pressed', switchName)
+          // console.log('pressed', switchName)
           this._buttonPressStarts[switchName] = now
-          this.sendMessage(new ButtonPressed(this.id, switchName))
+          this.sendInternalMessage(new ButtonPressed(this.id, switchName))
         } else {
-          console.log('released', switchName)
+          // console.log('released', switchName)
           const start = this._buttonPressStarts[switchName] ?? now
           const duration = differenceInMilliseconds(now, start)
-          this.sendMessage(new ButtonReleased(this.id, switchName, duration))
+          this.sendInternalMessage(new ButtonReleased(this.id, switchName, duration))
         }
         this._states[switchName] = newState
         this._debugInfo.lastStateChanges[plc.name + '-' + switchName] = nowStr

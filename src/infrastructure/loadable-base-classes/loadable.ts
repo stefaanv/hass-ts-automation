@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { get } from '@bruyland/utilities'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Message } from '../messages/message.model'
+import { Logger } from '@nestjs/common'
 
 export const LoadableSchema = z.object({
   name: z.string(),
@@ -36,19 +37,31 @@ export abstract class Loadable implements ILoadable {
   public abstract version: string
   public abstract id: string
   protected abstract get globalConfigKeyChain(): string[]
+  protected _log: Logger
+
   abstract start(): Promise<boolean>
   abstract stop(): Promise<void>
 
   constructor(
+    id: string,
     protected _eventEmitter: EventEmitter2,
     private readonly _localConfig: any, // content of the config file with the same name as the driver file
     private readonly _globalConfig: ConfigService,
-  ) {}
+  ) {
+    this._log = new Logger(id)
+    this._eventEmitter.on('**', message => this.handleInternalMessage(message))
+  }
 
   public debug: boolean = false
+  abstract get debugInfo(): object | undefined
+  abstract get configInfo(): object | undefined
 
-  sendMessage(message: Message) {
+  sendInternalMessage(message: Message) {
     this._eventEmitter.emit(message.entity, message)
+  }
+
+  handleInternalMessage(message: Message) {
+    this._log.warn(`unhandled message ${JSON.stringify(message)}`)
   }
 
   protected getConfig<T>(key: string): T | undefined
@@ -57,8 +70,8 @@ export abstract class Loadable implements ILoadable {
     const local = get<T>(this._localConfig, key)
     if (local !== undefined && Object.keys(local).length > 0) return local
     const keyChain = [...this.globalConfigKeyChain, key].join('.')
-    return dflt === undefined
-      ? this._globalConfig.get<T>(keyChain)
-      : this._globalConfig.get<T>(keyChain, dflt)
+    const result =
+      dflt === undefined ? this._globalConfig.get<T>(keyChain) : this._globalConfig.get<T>(keyChain, dflt)
+    return result
   }
 }

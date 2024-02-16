@@ -13,10 +13,11 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { CommandMessage, Message } from '@src/infrastructure/messages/message.model'
 import { ToggleLightCommand } from '@src/infrastructure/messages/commands/toggle-light.model'
 
+const ID = 'hass-lights'
 export default class HassLightsIntegration extends IntegrationBase {
   public readonly name = 'Home Assistant Lights'
   public readonly version = '0.0.1'
-  public readonly id = 'hass-lights'
+  public readonly id = ID
 
   private readonly _axios: Axios
   private _lights: Record<string, LightConfig>
@@ -32,8 +33,7 @@ export default class HassLightsIntegration extends IntegrationBase {
     globalConfig: ConfigService,
   ) {
     // general setup
-    super(eventEmitter, localConfig, globalConfig)
-    this._log = new Logger(this.name)
+    super(ID, eventEmitter, localConfig, globalConfig)
 
     //get config
     this._lights = this.getConfig<Record<string, LightConfig>>('lights', {})
@@ -57,7 +57,6 @@ export default class HassLightsIntegration extends IntegrationBase {
   async start() {
     // start listening to `light` commands
     this._pollingJob = setInterval(() => this.getLightStates(), this._statePollingInterval)
-    this._eventEmitter.on('**', msg => this.onEvent(msg))
     return true
   }
 
@@ -65,7 +64,7 @@ export default class HassLightsIntegration extends IntegrationBase {
     clearInterval(this._pollingJob)
   }
 
-  onEvent(message: Message) {
+  override handleInternalMessage(message: Message) {
     if (message instanceof CommandMessage) {
       if (message instanceof ToggleLightCommand) {
         this._log.log(`toggling "${message.entity}" (from ${message.origin})`)
@@ -138,11 +137,14 @@ export default class HassLightsIntegration extends IntegrationBase {
       // light state changed !
       this._log.verbose(`state of ${key} changed to ${newState.toString()}`)
       this._states[key] = newState
-      this.sendMessage(new LightStateUpdate(this.id, key, newState))
+      this.sendInternalMessage(new LightStateUpdate(this.id, key, newState))
     }
   }
 
   get debugInfo(): object {
-    return this._states
+    return { states: this._states }
+  }
+  get configInfo(): object {
+    return { config: this.configInfo }
   }
 }

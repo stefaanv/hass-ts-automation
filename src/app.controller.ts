@@ -16,11 +16,6 @@ export class AppController {
     return this.appService.debugInfo()
   }
 
-  @Get('test')
-  test() {
-    return this.appService.test()
-  }
-
   // @Get('states')
   // getCurrentStates() {
   //   return this.stateRepo.currentStates

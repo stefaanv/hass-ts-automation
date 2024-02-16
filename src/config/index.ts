@@ -31,7 +31,8 @@ export default () => ({
       statePollingInterval: 2000,
       printCategories: ['light'],
       lights: {
-        slaapkamer4: { hassEntityId: 'light.slaapkamer_4', maxBrightness: 255 },
+        'light.slaapkamer_4': { hassEntityId: 'light.slaapkamer_4', maxBrightness: 255 },
+        'light.bureau': { hassEntityId: 'light.bureau', maxBrightness: 255 },
       },
     },
     'wago-nv': {
@@ -49,11 +50,6 @@ export default () => ({
         },
       ],
     },
-    automationsConfig: {
-      'switch-light': {
-        'single-button-on-off': [{ switch: 'sw_slpk4_deur_A1', light: 'slaapkamer4' }],
-      },
-    },
     //   dummy: {
     //     test: 'my test config string',
     //     entities: ['entity-one', 'entity-two'],
@@ -68,6 +64,12 @@ export default () => ({
     //     },
     //   },
   },
+  automationsConfig: {
+    'switch-lights': {
+      'single-button-on-off': [{ switch: 'sw_slpk4_deur_A1', light: 'light.slaapkamer_4' }],
+    },
+  },
+
   stateRepo: {
     keepMaxNumber: 10,
     keepMinNumber: 3,
