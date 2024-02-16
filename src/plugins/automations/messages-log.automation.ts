@@ -20,7 +20,8 @@ export default class MessageLogger extends AutomationBase {
     globalConfig: ConfigService,
   ) {
     super(ID, eventEmitter, localConfig, globalConfig)
-    this._logfile = resolve(__dirname, '../../..', this.getConfig('logFile', ''))
+    this._logfile = resolve(__dirname, '../..', this.getConfig('logFile', 'messages.log'))
+    this._log.verbose(`logfile = ${this._logfile}`)
   }
 
   async start(): Promise<boolean> {

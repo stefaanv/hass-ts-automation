@@ -67,16 +67,12 @@ exports.default = () => ({
     'switch-lights': {
       'single-button-on-off': [
         { switch: 'sw_slpk4_deur_A1', light: 'light.slaapkamer_4' },
-        { switch: 'sw_keuken', light: 'light.keuken' },
+        { switch: 'sw_keuken', light: 'light.keuken' }, //TODO relais keuken nog omdraaien !!
         // { switch: 'sw_bureau', light: 'light.bureau' },
         // { switch: 'sw_bureau_deur_A1', light: 'light.bureau' },
       ],
     },
   },
-  'msg-logger': {
-    logFile: 'all-messages.log',
-  },
-
   stateRepo: {
     keepMaxNumber: 10,
     keepMinNumber: 3,

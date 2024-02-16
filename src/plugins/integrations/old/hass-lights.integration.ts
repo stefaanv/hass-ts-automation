@@ -8,7 +8,7 @@ import {
   LightStateEnum,
   LightStateUpdate,
 } from '@infrastructure/messages/state-updates/light-state-update.model'
-import { LightConfig } from './hass-lights/light.config'
+import { LightConfig } from '../hass-lights/light.config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { CommandMessage, Message } from '@src/infrastructure/messages/message.model'
 import { ToggleLightCommand } from '@src/infrastructure/messages/commands/toggle-light.model'
