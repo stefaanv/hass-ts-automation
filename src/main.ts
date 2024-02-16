@@ -16,10 +16,6 @@ async function bootstrap() {
   const port = config.get('port', 3000)
   await app.listen(port)
   const logger = new Logger('main')
-  logger.debug(`mainConfigFolder: ${config.get('folders.mainConfigFolder', '')}`)
-  logger.debug(`projectRoot: ${config.get('folders.projectRoot', '')}`)
-  logger.debug(`pluginsFolder: ${config.get('folders.pluginsFolder', '')}`)
-
   logger.log(`Application started, listening to port ${port}`)
   app.get(AutomationLoader).loadAll()
   app.get(IntegrationLoader).loadAll()

@@ -12,6 +12,7 @@ export default class MessageLogger extends AutomationBase {
   public version = '0.0.1'
   public id = ID
   private readonly _logfile: string
+  private logFileOK = true
 
   constructor(
     _automationFileName: string,
@@ -21,7 +22,8 @@ export default class MessageLogger extends AutomationBase {
   ) {
     super(ID, eventEmitter, localConfig, globalConfig)
     this._logfile = resolve(__dirname, '../..', this.getConfig('logFile', 'messages.log'))
-    this._log.verbose(`logfile = ${this._logfile}`)
+    // this._log.verbose(`logfile config = ${this.getConfig('logFile', '')}`)
+    // this._log.verbose(`logfile = ${this._logfile}`)
   }
 
   async start(): Promise<boolean> {
@@ -37,7 +39,19 @@ export default class MessageLogger extends AutomationBase {
     const msg = message
       .toString()
       .replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '') // remove colorization
-    appendFileSync(this._logfile, `${date} ${message.constructor.name} -> ${msg}\r\n`)
+    this.writeToLog(`${date} ${message.constructor.name} -> ${msg}\r\n`)
+  }
+
+  private writeToLog(msg: string) {
+    if (this.logFileOK) {
+      try {
+        appendFileSync(this._logfile, msg)
+      } catch (error) {
+        this.logFileOK = false
+        this._log.error(`unable to append file ${this._logfile}`)
+        console.error(error)
+      }
+    }
   }
 
   get debugInfo() {

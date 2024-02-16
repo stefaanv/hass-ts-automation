@@ -1,26 +1,20 @@
-import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { IntegrationBase } from '@src/infrastructure/loadable-base-classes/integration.base'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import {
-  getAuth,
   createConnection,
-  subscribeEntities,
-  ERR_HASS_HOST_REQUIRED,
   Connection,
   createLongLivedTokenAuth,
-  entitiesColl,
   getServices,
-  HassService,
   HassServices,
 } from 'home-assistant-js-websocket'
-import { LightConfig } from './hass-lights/light.config'
+import { LightConfig } from './hass/light.config'
 import {
   LightState,
   LightStateEnum,
   LightStateUpdate,
 } from '@src/infrastructure/messages/state-updates/light-state-update.model'
-import { first, mapEntries, mapKeys, mapValues } from '@bruyland/utilities'
+import { mapValues } from '@bruyland/utilities'
 import { CommandMessage, Message } from '@src/infrastructure/messages/message.model'
 import { ToggleLightCommand } from '@src/infrastructure/messages/commands/toggle-light.model'
 
