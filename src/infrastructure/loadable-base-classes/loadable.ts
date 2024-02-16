@@ -31,6 +31,7 @@ export type ILoadable = z.infer<typeof LoadableSchema>
 //TODO: implementatie proberen op te halen met zod-class
 // https://www.npmjs.com/package/zod-class
 
+//TODO filtering implementeren op de messages
 /** Base class for both integrations and automation scripts */
 export abstract class Loadable implements ILoadable {
   public abstract name: string
@@ -60,8 +61,9 @@ export abstract class Loadable implements ILoadable {
     this._eventEmitter.emit(message.entity, message)
   }
 
-  handleInternalMessage(message: Message) {
-    this._log.warn(`unhandled message ${JSON.stringify(message)}`)
+  handleInternalMessage(message: Message): void {
+    debugger
+    this._log.verbose(`unhandled message from ${this.id}`)
   }
 
   protected getConfig<T>(key: string): T | undefined

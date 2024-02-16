@@ -9,6 +9,7 @@ import { ButtonReleased } from '@infrastructure/messages/events/button-release.m
 import { ButtonPressed } from '@infrastructure/messages/events/button-press.model'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ensureError } from '@bruyland/utilities'
+import { Message } from '@src/infrastructure/messages/message.model'
 
 const WAGO_PORT = 1202
 export interface WagoIntegrationDebugInfo {
@@ -73,6 +74,10 @@ export default class WagoIntegration extends IntegrationBase {
 
   override async stop() {
     this._server.close()
+  }
+
+  override handleInternalMessage(message: Message): void {
+    // Do nothing
   }
 
   private setUdpListeners() {

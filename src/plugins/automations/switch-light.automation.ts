@@ -39,10 +39,9 @@ export default class SwitchLights extends AutomationBase {
 
   override handleInternalMessage(message: Message) {
     if (message instanceof ButtonPressed) {
-      // console.log(message.entity)
       for (const connection of this._singleButtonToggle) {
         if (message.entity === connection.switch) {
-          this._log.verbose(`Toggling light ${this.id}`)
+          this._log.verbose(`Toggling light ${connection.light} by ${connection.switch}`)
           this.sendInternalMessage(new ToggleLightCommand(this.id, connection.light))
         }
       }

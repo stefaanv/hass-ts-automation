@@ -66,7 +66,7 @@ export default () => ({
   },
   automationsConfig: {
     'switch-lights': {
-      'single-button-on-off': [{ switch: 'sw_slpk4_deur_A1', light: 'light.slaapkamer_4' }],
+      'single-button-on-off': [{ switch: 'sw-bureau-deur-B1', light: 'light.slaapkamer_4' }],
     },
   },
 
