@@ -8,7 +8,7 @@ import { ToggleLightCommand } from '@src/infrastructure/messages/commands/toggle
 
 interface SwitchLightConnection {
   switch: string
-  light: string
+  lights: string[]
 }
 
 const ID = 'switch-lights'
@@ -26,23 +26,25 @@ export default class SwitchLights extends AutomationBase {
     globalConfig: ConfigService,
   ) {
     super(ID, eventEmitter, localConfig, globalConfig)
-    this._singleButtonToggle = this.getConfig('single-button-on-off', [])
+    this._singleButtonToggle = this.getConfig('single-button-toggle', [])
   }
 
   async start(): Promise<boolean> {
-    // does nothing
+    // do nothing
     return true
   }
   async stop(): Promise<void> {
-    //does nothing
+    //do nothing
   }
 
   override handleInternalMessage(message: Message) {
     if (message instanceof ButtonPressed) {
       for (const connection of this._singleButtonToggle) {
         if (message.entity === connection.switch) {
-          this._log.verbose(`Toggling light ${connection.light} by ${connection.switch}`)
-          this.sendInternalMessage(new ToggleLightCommand(this.id, connection.light))
+          connection.lights.forEach(light => {
+            this._log.verbose(`Toggling light ${light} by ${connection.switch}`)
+            this.sendInternalMessage(new ToggleLightCommand(this.id, light))
+          })
         }
       }
     }

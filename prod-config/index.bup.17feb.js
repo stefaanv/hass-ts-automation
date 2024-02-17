@@ -71,14 +71,12 @@ exports.default = () => ({
         // { switch: 'sw_zithoek', light: 'light.zithoek' },
         // { switch: 'sw_eethoek', light: 'light.eethoek' },
         // { switch: 'sw_bureau', light: 'light.bureau' },
-        // { switch: 'sw_bureau_deur_A1', light: 'light.bureau' },
       ],
     },
     'msg-logger': {
       logFile: 'all-messages.log',
     },
   },
-
   stateRepo: {
     keepMaxNumber: 10,
     keepMinNumber: 3,
