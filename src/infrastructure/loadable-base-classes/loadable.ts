@@ -37,8 +37,9 @@ export abstract class Loadable implements ILoadable {
   public abstract name: string
   public abstract version: string
   public abstract id: string
-  protected abstract get globalConfigKeyChain(): string[]
   protected _log: Logger
+  abstract _generalConfigKey: string
+  abstract _configConfigKey: string
 
   abstract start(): Promise<boolean>
   abstract stop(): Promise<void>
@@ -64,6 +65,14 @@ export abstract class Loadable implements ILoadable {
   handleInternalMessage(message: Message): void {
     debugger
     this._log.verbose(`unhandled message from ${this.id}`)
+  }
+
+  protected get globalConfigKeyChain(): string[] {
+    return [this._configConfigKey, this.id]
+  }
+
+  protected get globalGeneralConfigKeyChain(): string[] {
+    return [this._generalConfigKey, this.id]
   }
 
   protected getConfig<T>(key: string): T | undefined

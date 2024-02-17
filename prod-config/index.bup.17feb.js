@@ -68,6 +68,8 @@ exports.default = () => ({
       'single-button-on-off': [
         { switch: 'sw_slpk4_deur_A1', light: 'light.slaapkamer_4' },
         { switch: 'sw_keuken', light: 'light.keuken' },
+        // { switch: 'sw_zithoek', light: 'light.zithoek' },
+        // { switch: 'sw_eethoek', light: 'light.eethoek' },
         // { switch: 'sw_bureau', light: 'light.bureau' },
         // { switch: 'sw_bureau_deur_A1', light: 'light.bureau' },
       ],
@@ -76,6 +78,7 @@ exports.default = () => ({
       logFile: 'all-messages.log',
     },
   },
+
   stateRepo: {
     keepMaxNumber: 10,
     keepMinNumber: 3,

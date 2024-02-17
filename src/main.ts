@@ -6,9 +6,10 @@ import { AutomationLoader } from './infrastructure/loaders/automation-loader.ser
 import { IntegrationLoader } from './infrastructure/loaders/integration-loader.service'
 
 /* TODO
-- starten/stoppen van automatisaties
-- starten/stoppen van integraties
-- debug logging van integratie aan/uit zetten
+- starten/stoppen/herladen van automatisaties en integraties
+- op/neer van rolluik living
+- eigenschappen van automation-loader en integration-loader naar super klasse verhuizen
+- eigenschappen van autom. en integr. naar super klasse verhuizen
 */
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { logger: new ConsoleLogger() })

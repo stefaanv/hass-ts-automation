@@ -14,6 +14,8 @@ import { green, red, white, yellow } from 'ansi-colors'
 
 const tryImport = tryit(async (file: string) => import(file))
 
+export class Loader {}
+
 export async function load(
   folder: string,
   extension: string,

@@ -46,9 +46,6 @@ export default class WagoIntegration extends IntegrationBase {
 
     // get the configuration
     const plcs = this.getConfig<PlcConfig[]>('plcs', [] as PlcConfig[])
-    this.entities = plcs.flatMap(plc =>
-      Object.entries(plc.switches).map(([k, v]) => new Entity({ name: v, type: 'button' })),
-    )
 
     this._states = Object.fromEntries(
       plcs.flatMap(plc => Object.values(plc.switches)).map(name => [name, false]),
