@@ -6,6 +6,7 @@ client/*
 /data
 /prod-config
 /data
+/thunder-tests
 
 # IDE - VSCode
 .vscode/*
