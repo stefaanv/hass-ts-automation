@@ -57,6 +57,7 @@ export default () => ({
     },
     'msg-logger': {
       logFile: '../data/all-messages.log',
+      copyToConsole: true,
     },
   },
 

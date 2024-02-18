@@ -1,0 +1,28 @@
+{
+    "_id": "3fa422f0-b6f2-4ef9-a193-1a8a255be126",
+    "colName": "send internal message",
+    "created": "2024-02-18T09:03:22.466Z",
+    "sortNum": 40000,
+    "folders": [],
+    "requests": [
+        {
+            "_id": "f96cfc84-f8fc-45ed-8f5c-7a3cf54ca89c",
+            "colId": "3fa422f0-b6f2-4ef9-a193-1a8a255be126",
+            "containerId": "",
+            "name": "group light test",
+            "url": "{{baseUrl}}/message/test",
+            "method": "POST",
+            "sortNum": 10000,
+            "created": "2024-02-18T09:03:48.853Z",
+            "modified": "2024-02-18T09:33:00.050Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"test\": true\n}",
+                "form": []
+            },
+            "tests": []
+        }
+    ]
+}

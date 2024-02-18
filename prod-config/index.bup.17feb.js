@@ -73,7 +73,7 @@ exports.default = () => ({
         // { switch: 'sw_bureau', light: 'light.bureau' },
       ],
     },
-    'msg-logger': {
+    msg-logger: {
       logFile: 'all-messages.log',
     },
   },

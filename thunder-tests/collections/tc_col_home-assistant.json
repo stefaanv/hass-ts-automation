@@ -1,0 +1,154 @@
+{
+    "_id": "1ee8b453-485a-4aa0-b199-84bdf5a25a46",
+    "colName": "home-assistant",
+    "created": "2024-02-17T16:18:59.457Z",
+    "sortNum": 30000,
+    "folders": [],
+    "requests": [
+        {
+            "_id": "e74daefb-5b27-4bb3-80e0-b6d62e25b29c",
+            "colId": "1ee8b453-485a-4aa0-b199-84bdf5a25a46",
+            "containerId": "",
+            "name": "connection test",
+            "url": "http://192.168.0.3:8123/api/",
+            "method": "GET",
+            "sortNum": 10000,
+            "created": "2024-02-17T16:22:49.464Z",
+            "modified": "2024-02-17T16:29:14.434Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
+            "params": [],
+            "auth": {
+                "type": "bearer",
+                "bearer": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI0YjFmY2EyOWU5ZWU0NTJiYmRiNTY4MjNkZjJhNWRkNCIsImlhdCI6MTY5NTc1MDk2MSwiZXhwIjoyMDExMTEwOTYxfQ.YUn0PYL8xc2kpE9yGI1N2NK9SGkkAVEFm1mf9QT5DI8"
+            },
+            "tests": []
+        },
+        {
+            "_id": "9f87327c-2ae8-4c45-8ec8-870cf3534544",
+            "colId": "1ee8b453-485a-4aa0-b199-84bdf5a25a46",
+            "containerId": "",
+            "name": "Get configuration",
+            "url": "http://192.168.0.3:8123/api/config",
+            "method": "GET",
+            "sortNum": 20000,
+            "created": "2024-02-17T16:29:42.520Z",
+            "modified": "2024-02-17T16:30:06.930Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
+            "params": [],
+            "auth": {
+                "type": "bearer",
+                "bearer": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI0YjFmY2EyOWU5ZWU0NTJiYmRiNTY4MjNkZjJhNWRkNCIsImlhdCI6MTY5NTc1MDk2MSwiZXhwIjoyMDExMTEwOTYxfQ.YUn0PYL8xc2kpE9yGI1N2NK9SGkkAVEFm1mf9QT5DI8"
+            },
+            "tests": []
+        },
+        {
+            "_id": "51d8268d-c194-4d00-a8cf-5403f75ec636",
+            "colId": "1ee8b453-485a-4aa0-b199-84bdf5a25a46",
+            "containerId": "",
+            "name": "get all states",
+            "url": "http://192.168.0.3:8123/api/states",
+            "method": "GET",
+            "sortNum": 30000,
+            "created": "2024-02-17T16:29:49.532Z",
+            "modified": "2024-02-17T16:30:53.997Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
+            "params": [],
+            "auth": {
+                "type": "bearer",
+                "bearer": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI0YjFmY2EyOWU5ZWU0NTJiYmRiNTY4MjNkZjJhNWRkNCIsImlhdCI6MTY5NTc1MDk2MSwiZXhwIjoyMDExMTEwOTYxfQ.YUn0PYL8xc2kpE9yGI1N2NK9SGkkAVEFm1mf9QT5DI8"
+            },
+            "tests": []
+        },
+        {
+            "_id": "f89d154a-e423-4e5e-85b3-d92bfe49c7ad",
+            "colId": "1ee8b453-485a-4aa0-b199-84bdf5a25a46",
+            "containerId": "",
+            "name": "toggle eethoek",
+            "url": "http://192.168.0.3:8123/api/services/light/turn_off",
+            "method": "POST",
+            "sortNum": 40000,
+            "created": "2024-02-17T16:31:31.041Z",
+            "modified": "2024-02-17T16:41:30.550Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\r\n    \"entity_id\": \"light.eethoek\"\r\n}",
+                "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI0YjFmY2EyOWU5ZWU0NTJiYmRiNTY4MjNkZjJhNWRkNCIsImlhdCI6MTY5NTc1MDk2MSwiZXhwIjoyMDExMTEwOTYxfQ.YUn0PYL8xc2kpE9yGI1N2NK9SGkkAVEFm1mf9QT5DI8"
+            },
+            "tests": []
+        },
+        {
+            "_id": "58d5856c-2e3d-44b3-96f9-0ef05f8b93f0",
+            "colId": "1ee8b453-485a-4aa0-b199-84bdf5a25a46",
+            "containerId": "",
+            "name": "get all services",
+            "url": "http://192.168.0.3:8123/api/services",
+            "method": "GET",
+            "sortNum": 35000,
+            "created": "2024-02-17T16:37:35.931Z",
+            "modified": "2024-02-17T16:37:51.047Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
+            "params": [],
+            "auth": {
+                "type": "bearer",
+                "bearer": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI0YjFmY2EyOWU5ZWU0NTJiYmRiNTY4MjNkZjJhNWRkNCIsImlhdCI6MTY5NTc1MDk2MSwiZXhwIjoyMDExMTEwOTYxfQ.YUn0PYL8xc2kpE9yGI1N2NK9SGkkAVEFm1mf9QT5DI8"
+            },
+            "tests": []
+        }
+    ]
+}

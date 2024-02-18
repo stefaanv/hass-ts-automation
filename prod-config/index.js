@@ -65,15 +65,35 @@ exports.default = () => ({
   },
   automationsConfig: {
     'switch-lights': {
-      'single-button-on-off': [
-        { switch: 'sw_slpk4_deur_A1', light: 'light.slaapkamer_4' },
-        { switch: 'sw_keuken', light: 'light.keuken' },
-        { switch: 'sw_zithoek', light: 'light.zithoek' },
-        { switch: 'sw_eethoek', light: 'light.eethoek' },
-        { switch: 'sw_bureau', light: 'light.bureau' },
+      'single-button-toggle': [
+        { switch: 'sw_slpk4_deur_A1', lights: ['light.slaapkamer_4'] },
+        { switch: 'sw_keuken', lights: ['light.keuken'] },
+        /*        {
+          switch: 'sw_zithoek',
+          lights: [
+            'light.zithoek1',
+            'light.zithoek2',
+            'light.zithoek3',
+            'light.zithoek4',
+            'light.zithoek5',
+            'light.zithoek6',
+          ],
+        },
+        {
+          switch: 'sw_eethoek',
+          lights: [
+            'light.eethoek_1',
+            'light.eethoek_2',
+            'light.eethoek_3',
+            'light.eethoek_4',
+            'light.eethoek_5',
+            'light.eethoek_6',
+          ],
+        },*/
+        { switch: 'sw_bureau', lights: ['light.bureau'] },
       ],
     },
-    'msg-logger': {
+    msg-logger: {
       logFile: 'all-messages.log',
     },
   },

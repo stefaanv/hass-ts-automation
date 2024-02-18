@@ -1,7 +1,8 @@
-import { Controller, Get } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post } from '@nestjs/common'
 import { AppService } from './app.service'
 // import { StateRepoService } from './infrastructure/state-repo.service.ts.disabled'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { Message } from './infrastructure/messages/message.model'
 
 @Controller()
 export class AppController {
@@ -19,6 +20,11 @@ export class AppController {
   @Get('config')
   configInfo() {
     return this.appService.configInfo()
+  }
+
+  @Post('message/:entityId')
+  sendMessage(@Param('entityId') entityId: string, @Body() body: Message) {
+    this.appService.sendMessage(entityId, body)
   }
 
   // @Get('states')
