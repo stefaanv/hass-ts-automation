@@ -4,6 +4,8 @@
 db/sqlite.db
 client/*
 /data
+prod-config/*
+data/*
 
 # IDE - VSCode
 .vscode/*

@@ -10,16 +10,16 @@
             "colId": "3fa422f0-b6f2-4ef9-a193-1a8a255be126",
             "containerId": "",
             "name": "group light test",
-            "url": "{{baseUrl}}/message/test",
-            "method": "POST",
+            "url": "{{baseUrl}}/test",
+            "method": "GET",
             "sortNum": 10000,
             "created": "2024-02-18T09:03:48.853Z",
-            "modified": "2024-02-18T09:33:00.050Z",
+            "modified": "2024-02-18T09:46:47.442Z",
             "headers": [],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"test\": true\n}",
+                "raw": "{\n  \"typePrefix\": \"command.\",\n  \"origin\":\"api\",\n  \"entity\":\"light.bureau\",\n  \"timestamp\":\"\"\n}",
                 "form": []
             },
             "tests": []

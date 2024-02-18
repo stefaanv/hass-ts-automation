@@ -6,6 +6,7 @@ import { AutomationLoader } from './infrastructure/loaders/automation-loader.ser
 import { IntegrationLoader } from './infrastructure/loaders/integration-loader.service'
 
 /* TODO
+- messages moeten interfaces zijn ipv klassen !!!
 - starten/stoppen/herladen van automatisaties en integraties
 - op/neer van rolluik living
 - eigenschappen van automation-loader en integration-loader naar super klasse verhuizen

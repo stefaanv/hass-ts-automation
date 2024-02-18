@@ -22,6 +22,11 @@ export class AppController {
     return this.appService.configInfo()
   }
 
+  @Get('test')
+  test() {
+    return this.appService.test()
+  }
+
   @Post('message/:entityId')
   sendMessage(@Param('entityId') entityId: string, @Body() body: Message) {
     this.appService.sendMessage(entityId, body)

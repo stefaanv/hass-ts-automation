@@ -3,6 +3,7 @@ import { IntegrationLoader } from './infrastructure/loaders/integration-loader.s
 import { AutomationLoader } from './infrastructure/loaders/automation-loader.service'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Message } from './infrastructure/messages/message.model'
+import HassIntegration from './plugins/integrations/hass.integration'
 
 @Injectable()
 export class AppService {
@@ -32,5 +33,10 @@ export class AppService {
 
   sendMessage(entityId: string, message: Message) {
     this._eventEmitter.emit(entityId, message)
+  }
+
+  test() {
+    const hassIntegration = this._integrations.get('hass') as HassIntegration
+    hassIntegration.toggleLight('light.zithoek')
   }
 }

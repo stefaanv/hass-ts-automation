@@ -33,6 +33,7 @@ export default () => ({
       lights: {
         'light.slaapkamer_4': { hassEntityId: 'light.slaapkamer_4', maxBrightness: 255 },
         'light.bureau': { hassEntityId: 'light.bureau', maxBrightness: 255 },
+        'light.zithoek': { hassEntityId: 'light.zithoek', maxBrightness: 255 },
       },
     },
     'wago-nv': {
