@@ -18,6 +18,7 @@ import { mapValues } from '@bruyland/utilities'
 import { CommandMessage, Message } from '@src/infrastructure/messages/message.model'
 import { ToggleLightCommand } from '@src/infrastructure/messages/commands/toggle-light.model'
 import { HassEventType, HassState } from '@src/infrastructure/messages/hass-event.model'
+import { isString } from 'radash'
 
 const wnd = globalThis
 wnd.WebSocket = require('ws')
@@ -26,11 +27,10 @@ interface HassLightState {
   brightness: number
 }
 
-interface ToPrintDefinition {
+interface HassFilterDefinition {
   /** print all entities of domain*/ domain: string
   /** except those starting with. start with `!` on full entityId to print anyway */
   except: string[]
-  disregardExcept: string[]
 }
 
 const ID = 'hass'
@@ -46,7 +46,10 @@ export default class HassIntegration extends IntegrationBase {
   private readonly _lightConfig: Record</** internal entity name */ string, LightConfig>
   private readonly _lightStates: Record</** hass entity name */ string, LightState> = {}
   private readonly _lightStatePollingInterval: number
-  private readonly _toPrint: ToPrintDefinition[]
+  private readonly _toPrintDefs: HassFilterDefinition[]
+  private readonly _toPrintIds: string[]
+  private readonly _receptionFilterDefs: HassFilterDefinition[]
+  private readonly _receptionFilterIds: string[]
 
   private _services?: HassServices = undefined
 
@@ -65,7 +68,10 @@ export default class HassIntegration extends IntegrationBase {
     this._hassToken = this.getConfig('authToken', '')
     this._printDomains = this.getConfig<string[]>('printDomains', [])
     this._lightStates = mapValues(this._lightConfig, (v, k) => new LightState())
-    this._toPrint = this.getConfig<ToPrintDefinition[]>('toPrint', [])
+    this._toPrintDefs = this.getConfig<HassFilterDefinition[]>('toPrintDefs', [])
+    this._toPrintIds = this.getConfig<string[]>('toPrintIds', [])
+    this._receptionFilterDefs = this.getConfig<HassFilterDefinition[]>('receptionFilterDefs', [])
+    this._receptionFilterIds = this.getConfig<string[]>('receptionFilterIds', [])
   }
 
   override async start(): Promise<boolean> {
@@ -144,14 +150,17 @@ export default class HassIntegration extends IntegrationBase {
     return undefined
   }
 
-  private print(entityId: string): boolean {
-    // if (entityId.startsWith('light')) debugger
+  private filter(entityId: string, filter: 'print' | 'reception'): boolean {
+    const ids = filter === 'print' ? this._toPrintIds : this._receptionFilterIds
+    if (ids.includes(entityId)) return true
+
     const domain = entityId.split('.')?.[0]
-    const printDef = this._toPrint.find(pd => pd.domain === domain)
-    if (!printDef) return false
+    const filterDefinition = (
+      filter === 'print' ? this._toPrintDefs : this._receptionFilterDefs
+    ).find(f => f.domain === domain)
+    if (!filterDefinition) return false
     const rest = entityId.split('.').slice(1).join('.')
-    if (printDef.disregardExcept?.some(k => rest.startsWith(k))) return true
-    return !printDef.except?.some(k => rest.startsWith(k)) ?? true
+    return !filterDefinition.except?.some(k => rest.startsWith(k)) ?? true
   }
 
   private hassStateChangeHandler(e: HassEventType) {
@@ -164,9 +173,14 @@ export default class HassIntegration extends IntegrationBase {
       // print info to console
       const entityId = e.data?.entity_id
       if (!entityId) return
-      if (this.print(entityId)) {
+
+      // print selected messages to the console
+      if (this.filter(entityId, 'print')) {
         console.log(entityId, e.data.new_state.state, JSON.stringify(e.data.new_state.attributes))
       }
+
+      // only forward selected messages to the internal message bus
+      if (!this.filter(entityId, 'reception')) return
 
       if (entityId.startsWith('light')) {
         // capture light state changes
