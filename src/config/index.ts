@@ -39,7 +39,11 @@ export default () => ({
         // },
         // { domain: 'light' },
       ],
-      receptionFilterIds: ['sensor.battery_charge_discharge_power', 'sensor.slimmelezer_uptime'],
+      receptionFilterIds: [
+        'binary_sensor.openclose_19',
+        'sensor.battery_charge_discharge_power',
+        'sensor.slimmelezer_uptime',
+      ],
       receptionFilterDefs: [{ domain: 'light' }],
       lights: {
         'light.slaapkamer_4': { hassEntityId: 'light.slaapkamer_4', maxBrightness: 255 },

@@ -7,6 +7,7 @@ import {
   createLongLivedTokenAuth,
   getServices,
   HassServices,
+  entitiesColl,
 } from 'home-assistant-js-websocket'
 import { LightConfig } from './hass/light.config'
 import {
@@ -23,6 +24,8 @@ import {
   HassState,
 } from '@src/infrastructure/messages/state-updates/hass-state-update.model'
 import { HassStateUpdate } from '@src/infrastructure/messages/state-updates/hass-state-update.model'
+import { resolve } from 'path'
+import { appendFileSync, writeFileSync } from 'fs'
 
 const wnd = globalThis
 wnd.WebSocket = require('ws')
@@ -45,7 +48,6 @@ export default class HassIntegration extends IntegrationBase {
   private readonly _printDomains: string[] = []
   private readonly _lightConfig: Record</** internal entity name */ string, LightConfig>
   private readonly _lightStates: Record</** hass entity name */ string, LightState> = {}
-  private readonly _lightStatePollingInterval: number
   private readonly _toPrintDefs: HassFilterDefinition[]
   private readonly _toPrintIds: string[]
   private readonly _receptionFilterDefs: HassFilterDefinition[]
@@ -63,7 +65,6 @@ export default class HassIntegration extends IntegrationBase {
 
     //get config
     this._lightConfig = this.getConfig<Record<string, LightConfig>>('lights', {})
-    this._lightStatePollingInterval = this.getConfig('statePollingInterval', 5000)
     this._hassUrl = this.getConfig('baseUrl', '')
     this._hassToken = this.getConfig('authToken', '')
     this._printDomains = this.getConfig<string[]>('printDomains', [])
@@ -80,11 +81,23 @@ export default class HassIntegration extends IntegrationBase {
       this._hassConnection = await createConnection({ auth })
       this._hassConnection!.subscribeEvents(e => this.hassStateChangeHandler(e as HassEvent))
       this._services = await getServices(this._hassConnection)
+      // print all services to a file
+      // const file = resolve(__dirname, '../../../data', 'services.txt')
+      // writeFileSync(file, '', { encoding: 'utf-8' })
+      // for (const key in this._services) {
+      //   const serviceClass = this._services[key]
+      //   for (const cmdKey in serviceClass) {
+      //     const command = serviceClass[cmdKey]
+      //     appendFileSync(file, `${key};${cmdKey};${JSON.stringify(command)}\r\n`, {
+      //       encoding: 'utf-8',
+      //     })
+      //   }
+      // }
       return true
     } catch (error) {
       console.log(error)
     }
-    // const coll = entitiesColl(connection)
+    // const coll = entitiesColl(this._hassConnection)
     // console.log(coll.state)
     // await coll.refresh()
     // subscribeEntities(connection, ent => console.log(new Date()))
