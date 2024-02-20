@@ -62,6 +62,7 @@ export abstract class Loadable implements ILoadable {
     this._eventEmitter.emit(message.entityId, message)
   }
 
+  //TODO! abstract maken
   handleInternalMessage(message: Message): void {
     debugger
     this._log.verbose(`unhandled message from ${this.id}`)
