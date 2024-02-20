@@ -1,6 +1,5 @@
 import { white } from 'ansi-colors'
 import { StateUpdate } from '../message.model'
-import { number, unknown } from 'zod'
 
 export const LIGHT_STATES = ['on', 'off', 'unreachable', undefined] as const
 export type LightStateEnum = (typeof LIGHT_STATES)[number]
@@ -32,6 +31,6 @@ export class LightState {
 
 export class LightStateUpdate extends StateUpdate<LightState> {
   toString() {
-    return `Light "${this.entity}" changed to ${white(this.state.toString())}`
+    return `Light "${this.entityId}" changed to ${white(this.state.toString())}`
   }
 }

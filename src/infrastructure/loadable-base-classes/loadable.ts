@@ -59,7 +59,7 @@ export abstract class Loadable implements ILoadable {
   abstract get configInfo(): object | undefined
 
   sendInternalMessage(message: Message) {
-    this._eventEmitter.emit(message.entity, message)
+    this._eventEmitter.emit(message.entityId, message)
   }
 
   handleInternalMessage(message: Message): void {

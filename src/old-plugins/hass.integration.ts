@@ -113,8 +113,8 @@ export default class HassIntegration extends IntegrationBase {
   override handleInternalMessage(message: Message) {
     if (message instanceof CommandMessage) {
       if (message instanceof ToggleLightCommand) {
-        this._log.log(`toggling "${message.entity}" (from ${message.origin})`)
-        this.toggleLight(message.entity)
+        this._log.log(`toggling "${message.entityId}" (from ${message.origin})`)
+        this.toggleLight(message.entityId)
       }
     }
   }
