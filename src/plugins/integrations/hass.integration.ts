@@ -17,36 +17,12 @@ import {
 import { mapValues } from '@bruyland/utilities'
 import { CommandMessage, Message } from '@src/infrastructure/messages/message.model'
 import { ToggleLightCommand } from '@src/infrastructure/messages/commands/toggle-light.model'
+import { HassEventType, HassState } from '@src/infrastructure/messages/hass-event.model'
 
 const wnd = globalThis
 wnd.WebSocket = require('ws')
 
-interface HassEventType {
-  event_type: string
-  context: {
-    id: string
-    parent_id: string | null
-    user_is: string | null
-  }
-  data: {
-    entity_id: string
-    new_state: HassState
-    old_state: HassState
-  }
-  origin: string
-  time_fired: Date
-}
-
-interface HassState {
-  attributes: HassLightStateAttributes
-  context: object
-  entity_id: string
-  last_changed: Date
-  last_updated: Date
-  state: string
-}
-
-interface HassLightStateAttributes {
+interface HassLightState {
   brightness: number
 }
 
@@ -215,10 +191,8 @@ export default class HassIntegration extends IntegrationBase {
       this._log.error(`light with entity id = ${entityId} not found in _lightStates object`)
       return
     }
-    const newState = new LightState(
-      hassState.state as LightStateEnum,
-      hassState.attributes.brightness,
-    )
+    const hassLightState = hassState.attributes as HassLightState
+    const newState = new LightState(hassState.state as LightStateEnum, hassLightState.brightness)
     if (hassState.state != 'on') newState.brightness = oldState.brightness
     if (!oldState.isEqual(newState)) {
       // this._log.verbose(`state of ${entityId} changed to ${newState.toString()}`)
