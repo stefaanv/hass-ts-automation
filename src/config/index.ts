@@ -54,7 +54,7 @@ export default () => ({
   },
   automationsConfig: {
     'switch-lights': {
-      'single-button-on-off': [{ switch: 'sw-bureau-deur-B1', light: 'light.slaapkamer_4' }],
+      'single-button-toggle': [{ switch: 'sw-bureau-deur-B1', lights: ['light.slaapkamer_4'] }],
     },
     'msg-logger': {
       logFile: '../data/all-messages.log',
