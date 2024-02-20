@@ -120,12 +120,12 @@ export default class WagoIntegration extends IntegrationBase {
           // this.emit<'pressed'>('pressed', switchName)
           // console.log('pressed', switchName)
           this._buttonPressStarts[switchName] = now
-          this.sendInternalMessage(new ButtonPressed(this.id, switchName))
+          this.sendInternalMessage(new ButtonPressed(this.id, switchName, undefined))
         } else {
           // console.log('released', switchName)
           const start = this._buttonPressStarts[switchName] ?? now
           const duration = differenceInMilliseconds(now, start)
-          this.sendInternalMessage(new ButtonReleased(this.id, switchName, duration))
+          this.sendInternalMessage(new ButtonReleased(this.id, switchName, { duration }))
         }
         this._states[switchName] = newState
         this._debugInfo.lastStateChanges[plc.name + '-' + switchName] = nowStr

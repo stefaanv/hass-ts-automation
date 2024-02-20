@@ -1,15 +1,6 @@
 import { StateUpdate } from '../message.model'
 
-export abstract class EnumStateUpdate<T extends string> extends StateUpdate {
-  constructor(
-    origin: string,
-    entityId: string,
-    public state: T,
-    timestamp = new Date(),
-  ) {
-    super(origin, entityId, timestamp)
-  }
-
+export abstract class EnumStateUpdate<T extends string> extends StateUpdate<T> {
   override toString() {
     return this.state
   }

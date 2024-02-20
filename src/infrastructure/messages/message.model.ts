@@ -8,32 +8,34 @@ export abstract class Message {
   abstract toString(): string
 }
 
-export abstract class StateUpdate<TState extends object = any> extends Message {
+export abstract class StateUpdate<TState> extends Message {
   constructor(
-    /** orignation integration name */ origin: string,
-    /** globally unique entity name */ entityId: string,
-    public readonly state: TState,
-    /** timestamp of message creation */ timestamp = new Date(),
+    origin: string,
+    entityId: string,
+    public state: TState,
+    timestamp = new Date(),
   ) {
     super(origin, entityId, timestamp)
   }
 }
 
-export abstract class EventMessage extends Message {
+export abstract class EventMessage<TPayload> extends Message {
   constructor(
-    /** orignation integration name */ origin: string,
-    /** globally unique entity name */ entityId: string,
-    /** timestamp of message creation */ timestamp = new Date(),
+    origin: string,
+    entityId: string,
+    public payload: TPayload,
+    timestamp = new Date(),
   ) {
     super(origin, entityId, timestamp)
   }
 }
 
-export abstract class CommandMessage extends Message {
+export abstract class CommandMessage<TCommand> extends Message {
   constructor(
-    /** orignation integration name */ origin: string,
-    /** globally unique entity name */ entityId: string,
-    /** timestamp of message creation */ timestamp = new Date(),
+    origin: string,
+    entityId: string,
+    public command: TCommand,
+    timestamp = new Date(),
   ) {
     super(origin, entityId, timestamp)
   }

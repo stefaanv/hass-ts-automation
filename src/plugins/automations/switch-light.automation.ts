@@ -2,7 +2,6 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
 import { AutomationBase } from '@src/infrastructure/loadable-base-classes/automation.base'
 import { Message } from '@infrastructure/messages/message.model'
 import { ConfigService } from '@nestjs/config'
-import { Logger } from '@nestjs/common'
 import { ButtonPressed } from '@src/infrastructure/messages/events/button-press.model'
 import { ToggleLightCommand } from '@src/infrastructure/messages/commands/toggle-light.model'
 
@@ -41,9 +40,9 @@ export default class SwitchLights extends AutomationBase {
     if (message instanceof ButtonPressed) {
       for (const connection of this._singleButtonToggle) {
         if (message.entityId === connection.switch) {
-          connection.lights.forEach(light => {
-            this._log.verbose(`Toggling light ${light} by ${connection.switch}`)
-            this.sendInternalMessage(new ToggleLightCommand(this.id, light))
+          connection.lights.forEach(entityId => {
+            this._log.verbose(`Toggling light ${entityId} by ${connection.switch}`)
+            this.sendInternalMessage(new ToggleLightCommand(this.id, entityId, undefined))
           })
         }
       }
