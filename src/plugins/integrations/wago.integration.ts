@@ -3,7 +3,6 @@ import { differenceInMilliseconds } from 'date-fns'
 import { IntegrationBase } from '@src/infrastructure/loadable-base-classes/integration.base'
 import { ConfigService } from '@nestjs/config'
 import { PlcConfig } from './wago/plc.config.model'
-import { ButtonReleased } from '@infrastructure/messages/events/button-release.model'
 import { ButtonPressed } from '@infrastructure/messages/events/button-press.model'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ensureError } from '@bruyland/utilities'
@@ -116,17 +115,16 @@ export default class WagoIntegration extends IntegrationBase {
       const switchName = plc.switches[subAddress]
       const oldState = this._states[switchName]
       if (newState !== oldState) {
-        if (newState) {
-          // this.emit<'pressed'>('pressed', switchName)
-          // console.log('pressed', switchName)
-          this._buttonPressStarts[switchName] = now
-          this.sendInternalMessage(new ButtonPressed(this.id, switchName, undefined))
-        } else {
-          // console.log('released', switchName)
-          const start = this._buttonPressStarts[switchName] ?? now
-          const duration = differenceInMilliseconds(now, start)
-          this.sendInternalMessage(new ButtonReleased(this.id, switchName, { duration }))
-        }
+        if (newState) this._buttonPressStarts[switchName] = now
+        const duration = newState
+          ? undefined
+          : differenceInMilliseconds(now, this._buttonPressStarts[switchName] ?? now)
+        const message = new ButtonPressed(
+          this.id,
+          switchName,
+          newState ? { type: 'pressed' } : { type: 'released', duration },
+        )
+        this.sendInternalMessage(message)
         this._states[switchName] = newState
         this._debugInfo.lastStateChanges[plc.name + '-' + switchName] = nowStr
       }
