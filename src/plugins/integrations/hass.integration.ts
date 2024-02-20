@@ -21,15 +21,6 @@ import { ToggleLightCommand } from '@src/infrastructure/messages/commands/toggle
 const wnd = globalThis
 wnd.WebSocket = require('ws')
 
-const ignoreEntities = [
-  'sensor.current_phase_1',
-  'sensor.power_produced_phase_1',
-  'sensor.voltage_phase_1',
-  'sensor.power_produced',
-  'sensor.power_consumed_phase_1',
-  'sensor.power_consumed',
-]
-
 interface HassEventType {
   event_type: string
   context: {
@@ -59,6 +50,13 @@ interface HassLightStateAttributes {
   brightness: number
 }
 
+interface ToPrintDefinition {
+  /** print all entities of domain*/ domain: string
+  /** except those starting with. start with `!` on full entityId to print anyway */
+  except: string[]
+  disregardExcept: string[]
+}
+
 const ID = 'hass'
 export default class HassIntegration extends IntegrationBase {
   public name = 'Home Assistant websocket'
@@ -68,10 +66,12 @@ export default class HassIntegration extends IntegrationBase {
   private _hassConnection?: Connection = undefined
   private _hassUrl: string
   private _hassToken: string
-  private readonly _printCategories: string[] = []
+  private readonly _printDomains: string[] = []
   private readonly _lightConfig: Record</** internal entity name */ string, LightConfig>
   private readonly _lightStates: Record</** hass entity name */ string, LightState> = {}
   private readonly _lightStatePollingInterval: number
+  private readonly _toPrint: ToPrintDefinition[]
+
   private _services?: HassServices = undefined
 
   constructor(
@@ -87,8 +87,9 @@ export default class HassIntegration extends IntegrationBase {
     this._lightStatePollingInterval = this.getConfig('statePollingInterval', 5000)
     this._hassUrl = this.getConfig('baseUrl', '')
     this._hassToken = this.getConfig('authToken', '')
-    this._printCategories = this.getConfig<string[]>('printCategories', [])
+    this._printDomains = this.getConfig<string[]>('printDomains', [])
     this._lightStates = mapValues(this._lightConfig, (v, k) => new LightState())
+    this._toPrint = this.getConfig<ToPrintDefinition[]>('toPrint', [])
   }
 
   override async start(): Promise<boolean> {
@@ -160,9 +161,21 @@ export default class HassIntegration extends IntegrationBase {
   }
 
   private getEntityId(hassEntityId: string): string | undefined {
-    const tuple = Object.entries(this._lightConfig).find(([, cfg]) => cfg.hassEntityId === hassEntityId)
+    const tuple = Object.entries(this._lightConfig).find(
+      ([, cfg]) => cfg.hassEntityId === hassEntityId,
+    )
     if (tuple) return tuple[0]
     return undefined
+  }
+
+  private print(entityId: string): boolean {
+    const domain = entityId.split('.')?.[0]
+    const printDef = this._toPrint.find(pd => pd.domain === domain)
+    if (!printDef) return false
+    const rest = entityId.split('.').slice(1).join('.')
+    if (printDef.disregardExcept.includes(rest)) return true
+    for (const key of printDef.except) if (rest.startsWith(key)) return false
+    return true
   }
 
   private hassStateChangeHandler(e: HassEventType) {
@@ -172,20 +185,17 @@ export default class HassIntegration extends IntegrationBase {
         return
       }
 
+      // print info to console
+      const entityId = e.data?.entity_id
+      if (this.print(entityId)) {
+        console.log(entityId, e.data.new_state.state, JSON.stringify(e.data.new_state.attributes))
+      }
+
       if ((e.data?.entity_id ?? '').startsWith('light')) {
         // capture light state changes
         this.handleLightStateChange(e.data.entity_id, e.data.new_state)
         return
       }
-      /* print info
-      if (
-        e.data?.entity_id &&
-        e.data.entity_id.split('.').length > 0 &&
-        this._printCategories.includes(e.data.entity_id.split('.')[0])
-      ) {
-        console.log(e.data.entity_id, e.data.new_state.state, JSON.stringify(e.data.new_state.attributes))
-      }
-      */
     } catch (error) {
       console.error(`Error in hass.integration.ts > connection.subscribeEvents()`)
       console.error('e =', e)
@@ -203,7 +213,10 @@ export default class HassIntegration extends IntegrationBase {
       this._log.error(`light with entity id = ${entityId} not found in _lightStates object`)
       return
     }
-    const newState = new LightState(hassState.state as LightStateEnum, hassState.attributes.brightness)
+    const newState = new LightState(
+      hassState.state as LightStateEnum,
+      hassState.attributes.brightness,
+    )
     if (hassState.state != 'on') newState.brightness = oldState.brightness
     if (!oldState.isEqual(newState)) {
       // this._log.verbose(`state of ${entityId} changed to ${newState.toString()}`)

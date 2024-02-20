@@ -29,7 +29,16 @@ export default () => ({
       authToken: process.env.HASS_AUTH_TOKEN,
       user: 'js-automations',
       statePollingInterval: 2000,
-      printCategories: ['light'],
+      printDomains: ['sensor'],
+      // will not print updates of entityIds starting with ...
+      toPrint: [
+        {
+          domain: 'sensor',
+          except: ['current', 'power', 'voltage', 'gw2000a', 'battery', 'inverter'],
+          disregardExcept: ['battery_charge_discharge_power'],
+        },
+        { domain: 'light' },
+      ],
       lights: {
         'light.slaapkamer_4': { hassEntityId: 'light.slaapkamer_4', maxBrightness: 255 },
         'light.bureau': { hassEntityId: 'light.bureau', maxBrightness: 255 },
