@@ -35,7 +35,7 @@ export default () => ({
         {
           domain: 'sensor',
           except: ['current', 'power', 'voltage', 'gw2000a', 'battery', 'inverter'],
-          disregardExcept: ['battery_charge_discharge_power'],
+          disregardExcept: ['battery_charge_discharge_power', 'energy_consumed_tariff_1'],
         },
         { domain: 'light' },
       ],

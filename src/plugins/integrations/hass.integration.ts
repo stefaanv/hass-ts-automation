@@ -169,13 +169,13 @@ export default class HassIntegration extends IntegrationBase {
   }
 
   private print(entityId: string): boolean {
+    // if (entityId.startsWith('light')) debugger
     const domain = entityId.split('.')?.[0]
     const printDef = this._toPrint.find(pd => pd.domain === domain)
     if (!printDef) return false
     const rest = entityId.split('.').slice(1).join('.')
-    if (printDef.disregardExcept.includes(rest)) return true
-    for (const key of printDef.except) if (rest.startsWith(key)) return false
-    return true
+    if (printDef.disregardExcept?.some(k => rest.startsWith(k))) return true
+    return !printDef.except?.some(k => rest.startsWith(k)) ?? true
   }
 
   private hassStateChangeHandler(e: HassEventType) {
@@ -187,18 +187,20 @@ export default class HassIntegration extends IntegrationBase {
 
       // print info to console
       const entityId = e.data?.entity_id
+      if (!entityId) return
       if (this.print(entityId)) {
         console.log(entityId, e.data.new_state.state, JSON.stringify(e.data.new_state.attributes))
       }
 
-      if ((e.data?.entity_id ?? '').startsWith('light')) {
+      if (entityId.startsWith('light')) {
         // capture light state changes
-        this.handleLightStateChange(e.data.entity_id, e.data.new_state)
+        this.handleLightStateChange(entityId, e.data.new_state)
         return
       }
     } catch (error) {
       console.error(`Error in hass.integration.ts > connection.subscribeEvents()`)
-      console.error('e =', e)
+      console.log(error)
+      // console.error('e =', e)
     }
   }
 
