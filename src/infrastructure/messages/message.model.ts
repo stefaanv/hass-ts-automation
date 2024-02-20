@@ -4,14 +4,11 @@ export abstract class Message {
     /** globally unique entity name */ public entityId: string,
     /** timestamp of message creation */ public timestamp = new Date(),
   ) {}
-  abstract typePrefix: string
   /** string representation of the message content (without timestamp, origin and entity) */
   abstract toString(): string
 }
 
 export abstract class StateUpdate<TState extends object = any> extends Message {
-  typePrefix = 'state.'
-
   constructor(
     /** orignation integration name */ origin: string,
     /** globally unique entity name */ entityId: string,
@@ -23,7 +20,6 @@ export abstract class StateUpdate<TState extends object = any> extends Message {
 }
 
 export abstract class EventMessage extends Message {
-  typePrefix = 'event.'
   constructor(
     /** orignation integration name */ origin: string,
     /** globally unique entity name */ entityId: string,
@@ -34,7 +30,6 @@ export abstract class EventMessage extends Message {
 }
 
 export abstract class CommandMessage extends Message {
-  typePrefix = 'command.'
   constructor(
     /** orignation integration name */ origin: string,
     /** globally unique entity name */ entityId: string,
