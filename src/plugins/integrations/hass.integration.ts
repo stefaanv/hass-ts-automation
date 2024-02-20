@@ -17,15 +17,15 @@ import {
 import { mapValues } from '@bruyland/utilities'
 import { CommandMessage, Message } from '@src/infrastructure/messages/message.model'
 import { ToggleLightCommand } from '@src/infrastructure/messages/commands/toggle-light.model'
-import { HassEventType, HassState } from '@src/infrastructure/messages/hass-event.model'
-import { isString } from 'radash'
+import {
+  HassEvent,
+  HassLightState,
+  HassState,
+} from '@src/infrastructure/messages/state-updates/hass-state-update.model'
+import { HassStateUpdate } from '@src/infrastructure/messages/state-updates/hass-state-update.model'
 
 const wnd = globalThis
 wnd.WebSocket = require('ws')
-
-interface HassLightState {
-  brightness: number
-}
 
 interface HassFilterDefinition {
   /** print all entities of domain*/ domain: string
@@ -78,7 +78,7 @@ export default class HassIntegration extends IntegrationBase {
     const auth = createLongLivedTokenAuth(this._hassUrl, this._hassToken!)
     try {
       this._hassConnection = await createConnection({ auth })
-      this._hassConnection!.subscribeEvents(e => this.hassStateChangeHandler(e as HassEventType))
+      this._hassConnection!.subscribeEvents(e => this.hassStateChangeHandler(e as HassEvent))
       this._services = await getServices(this._hassConnection)
       return true
     } catch (error) {
@@ -163,7 +163,7 @@ export default class HassIntegration extends IntegrationBase {
     return !filterDefinition.except?.some(k => rest.startsWith(k)) ?? true
   }
 
-  private hassStateChangeHandler(e: HassEventType) {
+  private hassStateChangeHandler(e: HassEvent) {
     try {
       if (Object.keys(e.data).length === 0) {
         // e.data is soms een leeg object !
@@ -187,6 +187,9 @@ export default class HassIntegration extends IntegrationBase {
         this.handleLightStateChange(entityId, e.data.new_state)
         return
       }
+
+      const msg = new HassStateUpdate(this.id, entityId, e)
+      this.sendInternalMessage(msg)
     } catch (error) {
       console.error(`Error in hass.integration.ts > connection.subscribeEvents()`)
       console.log(error)

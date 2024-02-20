@@ -31,15 +31,15 @@ export default () => ({
       statePollingInterval: 2000,
       printDomains: ['sensor'],
       // will not print updates of entityIds starting with ...
-      toPrintIds: ['sensor.battery_charge_discharge_power'],
+      // toPrintIds: ['sensor.battery_charge_discharge_power'],
       toPrintDefs: [
-        {
-          domain: 'sensor',
-          except: ['current', 'power', 'voltage', 'gw2000a', 'battery', 'inverter'],
-        },
-        { domain: 'light' },
+        // {
+        //   domain: 'sensor',
+        //   except: ['current', 'power', 'voltage', 'gw2000a', 'battery', 'inverter'],
+        // },
+        // { domain: 'light' },
       ],
-      // receptionFilterIds: [],
+      receptionFilterIds: ['sensor.battery_charge_discharge_power', 'sensor.slimmelezer_uptime'],
       receptionFilterDefs: [{ domain: 'light' }],
       lights: {
         'light.slaapkamer_4': { hassEntityId: 'light.slaapkamer_4', maxBrightness: 255 },
