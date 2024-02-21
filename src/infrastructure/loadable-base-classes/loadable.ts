@@ -8,6 +8,9 @@ import { Logger } from '@nestjs/common'
 export const LoadableSchema = z.object({
   name: z.string(),
   version: z.string(),
+})
+
+export const IntegrationSchema = LoadableSchema.extend({
   start: z.function().args().returns(z.promise(z.boolean())),
   stop: z.function().args().returns(z.void()),
 })
@@ -27,6 +30,7 @@ export const LoadableConstructorSchema = z
   .returns(LoadableSchema)
 
 export type ILoadable = z.infer<typeof LoadableSchema>
+export type Integration = z.infer<typeof IntegrationSchema>
 
 //TODO: implementatie proberen op te halen met zod-class
 // https://www.npmjs.com/package/zod-class
@@ -40,9 +44,6 @@ export abstract class Loadable implements ILoadable {
   protected _log: Logger
   abstract _generalConfigKey: string
   abstract _configConfigKey: string
-
-  abstract start(): Promise<boolean>
-  abstract stop(): Promise<void>
 
   constructor(
     id: string,

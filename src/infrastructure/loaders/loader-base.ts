@@ -4,6 +4,7 @@ import { readdirSync } from 'fs'
 import { resolve } from 'path'
 import {
   ILoadable,
+  IntegrationSchema,
   Loadable,
   LoadableConstructorSchema,
   LoadableSchema,
@@ -11,6 +12,7 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ConfigService } from '@nestjs/config'
 import { green, red, white, yellow } from 'ansi-colors'
+import { IntegrationBase } from '../loadable-base-classes/integration.base'
 
 const tryImport = tryit(async (file: string) => import(file))
 
@@ -31,7 +33,11 @@ export async function load(
   let allProgramFiles: string[] = []
   let allLocalConfigFiles: string[] = []
   try {
-    allProgramFiles = readdirSync(folder, { recursive: true, withFileTypes: false, encoding: 'utf-8' })
+    allProgramFiles = readdirSync(folder, {
+      recursive: true,
+      withFileTypes: false,
+      encoding: 'utf-8',
+    })
     allLocalConfigFiles = readdirSync(configFolder, {
       recursive: true,
       withFileTypes: false,
@@ -77,22 +83,29 @@ export async function load(
 
       // try instantiating the automation
       const instance: Loadable = new _class(filename, eventEmitter, localConfig, config)
-      const [error2] = tryit(LoadableSchema.parse)(instance)
+      const Schema = type === 'integration' ? IntegrationSchema : LoadableSchema
+      const [error2] = tryit(Schema.parse)(instance)
       if (error2) {
         log.error(`Automation ${filename} class has incorrect form - ${error2.message}}`)
         console.error(error2)
         continue
       }
 
-      log.log(`${instance.name} ${type} loaded (v${instance.version})`)
+      log.log(
+        `${white(instance.name) + ' ' + yellow(type + ' loaded ')}` +
+          green(` (v${instance.version})`),
+      )
 
-      // try to start the automation
-      const started = await instance.start() // TODO handle possible errors
-      if (started) {
-        result.push(instance)
-        log.log(`${white(instance.name)} ${yellow(type)} ${green('started')}`)
-      } else {
-        log.error(red(`Unable to start ${instance.name} automation`))
+      if (type === 'integration') {
+        // try to start the integration
+        const integration = instance as IntegrationBase
+        const started = await integration.start() // TODO handle possible errors
+        if (started) {
+          result.push(instance)
+          log.log(`${instance.name} integration ${yellow('started')}`)
+        } else {
+          log.error(red(`Unable to start ${instance.name} automation`))
+        }
       }
     } else {
       //TODO
