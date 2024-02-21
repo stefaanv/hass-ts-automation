@@ -54,7 +54,7 @@ export default class WagoIntegration extends IntegrationBase {
     this._server = udp.createSocket({ type: 'udp4' })
   }
 
-  override async start(): Promise<boolean> {
+  async start(): Promise<boolean> {
     // set up the UDP listener
     try {
       this._server.bind(WAGO_PORT)
@@ -66,11 +66,11 @@ export default class WagoIntegration extends IntegrationBase {
     }
   }
 
-  override async stop() {
+  async stop() {
     this._server.close()
   }
 
-  override handleInternalMessage(message: Message): void {
+  handleInternalMessage(message: Message): void {
     // Do nothing
   }
 

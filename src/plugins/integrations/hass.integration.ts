@@ -75,7 +75,7 @@ export default class HassIntegration extends IntegrationBase {
     this._receptionFilterIds = this.getConfig<string[]>('receptionFilterIds', [])
   }
 
-  override async start(): Promise<boolean> {
+  async start(): Promise<boolean> {
     const auth = createLongLivedTokenAuth(this._hassUrl, this._hassToken!)
     try {
       this._hassConnection = await createConnection({ auth })
@@ -104,9 +104,9 @@ export default class HassIntegration extends IntegrationBase {
     return false
   }
 
-  override async stop() {}
+  async stop() {}
 
-  override handleInternalMessage(message: Message) {
+  handleInternalMessage(message: Message) {
     if (message instanceof CommandMessage) {
       if (message instanceof ToggleLightCommand) {
         this._log.log(`toggling "${message.entityId}" (from ${message.origin})`)
