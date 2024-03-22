@@ -17,7 +17,7 @@ import {
 } from '@src/infrastructure/messages/state-updates/light-state-update.model'
 import { mapValues } from '@bruyland/utilities'
 import { CommandMessage, Message } from '@src/infrastructure/messages/message.model'
-import { ToggleLightCommand } from '@src/infrastructure/messages/commands/toggle-light.model'
+import { ToggleLightCommand } from '@src/infrastructure/messages/commands/light-commands.model'
 import {
   HassEvent,
   HassLightState,

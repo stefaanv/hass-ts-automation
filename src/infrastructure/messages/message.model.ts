@@ -30,11 +30,11 @@ export abstract class EventMessage<TPayload> extends Message {
   }
 }
 
-export abstract class CommandMessage<TCommand> extends Message {
+export abstract class CommandMessage<TTarget> extends Message {
   constructor(
     origin: string,
     entityId: string,
-    public command: TCommand,
+    public target: TTarget,
     timestamp = new Date(),
   ) {
     super(origin, entityId, timestamp)

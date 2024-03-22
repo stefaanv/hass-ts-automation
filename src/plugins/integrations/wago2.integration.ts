@@ -9,9 +9,10 @@ import { ensureError } from '@bruyland/utilities'
 import { Message } from '@src/infrastructure/messages/message.model'
 
 const WAGO_PORT = 1202
-export interface WagoIntegrationDebugInfo {
+
+export interface WagoIntegration2DebugInfo {
   lastMsgReceivedFrom: Record<string, string>
-  lastUdpPacket: {
+  lastChange: {
     cobId: number
     receivedAt: string
   }
@@ -27,7 +28,7 @@ export default class WagoIntegration extends IntegrationBase {
   private _controller = new AbortController()
   private _states: Record<string, boolean> = {}
   private _buttonPressStarts: Record<string, Date> = {}
-  private _debugInfo: WagoIntegrationDebugInfo
+  private _debugInfo: WagoIntegration2DebugInfo
   private _plcs: PlcConfig[]
   private _startAddress: number
 

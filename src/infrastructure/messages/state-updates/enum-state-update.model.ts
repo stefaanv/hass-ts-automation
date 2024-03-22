@@ -10,7 +10,7 @@ export const presenceStateValues = ['present', 'absent'] as const
 export type PresenceState = (typeof presenceStateValues)[number]
 export class PresenceStateUpdate extends EnumStateUpdate<PresenceState> {}
 
-export const lightOnoffStateValues = ['on', 'off']
+export const lightOnoffStateValues = ['on', 'off'] as const
 export type LightOnoffState = (typeof lightOnoffStateValues)[number]
 export class LightOnoffStateUpdate extends EnumStateUpdate<LightOnoffState> {}
 

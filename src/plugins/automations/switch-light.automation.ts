@@ -3,7 +3,7 @@ import { AutomationBase } from '@src/infrastructure/loadable-base-classes/automa
 import { Message } from '@infrastructure/messages/message.model'
 import { ConfigService } from '@nestjs/config'
 import { ButtonPressed } from '@src/infrastructure/messages/events/button-press.model'
-import { ToggleLightCommand } from '@src/infrastructure/messages/commands/toggle-light.model'
+import { ToggleLightCommand } from '@src/infrastructure/messages/commands/light-commands.model'
 
 interface SwitchLightConnection {
   switch: string
